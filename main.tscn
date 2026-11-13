@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://dllewqgjutxww"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_pv2mu"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_426oi"]
+
+[sub_resource type="Sky" id="Sky_ig7tw"]
+sky_material = SubResource("PanoramaSkyMaterial_426oi")
+
+[sub_resource type="Environment" id="Environment_0xm2m"]
+background_mode = 2
+sky = SubResource("Sky_ig7tw")
+glow_enabled = true
+
+[node name="Main" type="Node3D" unique_id=1074344418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0008611679, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=50635228]
+transform = Transform3D(5.983526, 0, 0, 0, 0.01002405, 0, 0, 0, 5.9746137, 0, 0.016612828, 0.025212288)
+mesh = SubResource("BoxMesh_pv2mu")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=572415951]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9776388, 2.0189223)
+
+[node name="env" type="Node3D" parent="." unique_id=920958157]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="env" unique_id=1825283393]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="env" unique_id=32756852]
+environment = SubResource("Environment_0xm2m")
+
+[node name="stage" type="Node3D" parent="." unique_id=963392303]
