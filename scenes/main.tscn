@@ -43,6 +43,16 @@ shadow_enabled = true
 environment = SubResource("Environment_0xm2m")
 script = ExtResource("2_0wfyh")
 
+[node name="AreaLight3D" type="AreaLight3D" parent="env" unique_id=463032183]
+transform = Transform3D(-0.9508745, 0, -0.3095766, 0, 1, 0, 0.3095766, 0, -0.9508745, 0, 0, 2.8554912)
+area_range = 8.19
+area_attenuation = -0.112
+
+[node name="AreaLight3D2" type="AreaLight3D" parent="env" unique_id=704961075]
+transform = Transform3D(0.98938215, 0, -0.14533737, 0, 1, 0, 0.14533737, 0, 0.98938215, 0, 0, 6.6419907)
+area_range = 8.19
+area_attenuation = -0.112
+
 [node name="stage" type="Node3D" parent="." unique_id=963392303]
 
 [node name="CSGBox3D" type="CSGBox3D" parent="stage" unique_id=261854462]
@@ -67,7 +77,7 @@ use_collision = true
 material = SubResource("StandardMaterial3D_426oi")
 
 [node name="space" parent="stage" unique_id=2146753172 instance=ExtResource("4_tefeu")]
-transform = Transform3D(-0.006125753, 0, 0.2199147, 0, 0.22, 0, -0.2199147, 0, -0.006125753, 2.2510262, 0.63495934, 4.4251456)
+transform = Transform3D(-0.0057080877, 0, 0.20492052, 0, 0.205, 0, -0.20492052, 0, -0.0057080877, 2.2510262, 0.58278954, 4.4251456)
 
 [node name="CSGBox3D" type="CSGBox3D" parent="stage/space" unique_id=273985334]
 transform = Transform3D(1.0000002, 0, 3.7252903e-09, 0, 1.0000002, 0, -3.7252903e-09, 0, 1.0000002, -0.62605286, 1.9201763, -0.017438889)
