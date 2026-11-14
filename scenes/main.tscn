@@ -1,15 +1,21 @@
 [gd_scene format=3 uid="uid://dllewqgjutxww"]
 
+[ext_resource type="Texture2D" uid="uid://ojig6kqcvkrt" path="res://assets/panorama_image.png" id="1_o5qli"]
+[ext_resource type="Script" uid="uid://dk3jplabsrxls" path="res://scripts/world_environment.gd" id="2_0wfyh"]
+
 [sub_resource type="BoxMesh" id="BoxMesh_pv2mu"]
 
-[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_426oi"]
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_o5qli"]
+panorama = ExtResource("1_o5qli")
+energy_multiplier = 6.5
 
 [sub_resource type="Sky" id="Sky_ig7tw"]
-sky_material = SubResource("PanoramaSkyMaterial_426oi")
+sky_material = SubResource("PanoramaSkyMaterial_o5qli")
 
 [sub_resource type="Environment" id="Environment_0xm2m"]
 background_mode = 2
 sky = SubResource("Sky_ig7tw")
+ambient_light_energy = 0.0
 glow_enabled = true
 
 [node name="Main" type="Node3D" unique_id=1074344418]
@@ -30,5 +36,6 @@ shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="env" unique_id=32756852]
 environment = SubResource("Environment_0xm2m")
+script = ExtResource("2_0wfyh")
 
 [node name="stage" type="Node3D" parent="." unique_id=963392303]
