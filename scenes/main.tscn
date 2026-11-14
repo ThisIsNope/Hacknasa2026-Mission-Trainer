@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://dk3jplabsrxls" path="res://scripts/world_environment.gd" id="2_0wfyh"]
 [ext_resource type="Texture2D" uid="uid://chmpjlg6iayoj" path="res://assets/texture_07.png" id="3_jyhfs"]
 [ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="4_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://c014gxys7lxt0" path="res://models/space.blend" id="4_tefeu"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_o5qli"]
 panorama = ExtResource("1_o5qli")
@@ -35,6 +36,7 @@ uv1_triplanar = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="env" unique_id=1825283393]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+light_energy = 1.405
 shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="env" unique_id=32756852]
@@ -63,6 +65,15 @@ material = SubResource("StandardMaterial3D_426oi")
 transform = Transform3D(2.5213413, 0, 0, 0, 1.7117655, 0, 0, 0, 2.438301, -1.9693959, 4.95424, 5.4214063)
 use_collision = true
 material = SubResource("StandardMaterial3D_426oi")
+
+[node name="space" parent="stage" unique_id=2146753172 instance=ExtResource("4_tefeu")]
+transform = Transform3D(-0.006125753, 0, 0.2199147, 0, 0.22, 0, -0.2199147, 0, -0.006125753, 2.2510262, 0.63495934, 4.4251456)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="stage/space" unique_id=273985334]
+transform = Transform3D(1.0000002, 0, 3.7252903e-09, 0, 1.0000002, 0, -3.7252903e-09, 0, 1.0000002, -0.62605286, 1.9201763, -0.017438889)
+layers = 0
+use_collision = true
+size = Vector3(6.16, 10.635, 5.4)
 
 [node name="player" type="CharacterBody3D" parent="." unique_id=1437658975]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4744377, 0)
