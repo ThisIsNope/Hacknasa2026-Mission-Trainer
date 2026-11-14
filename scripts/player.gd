@@ -4,8 +4,8 @@ extends CharacterBody3D
 @onready var ray_cast_3d: RayCast3D = $head/RayCast3D
 @onready var hold_point: Marker3D = $head/Marker3D
 
-const WALK_SPEED = 5.0
-const SPRINT_SPEED = 8.0
+const WALK_SPEED = 8
+const SPRINT_SPEED = 12
 const CROUCH_SPEED = 3.0
 const JUMP_VELOCITY = 7.0
 const MOUSE_SENS = 0.1
@@ -25,7 +25,7 @@ var oxigen_cons = 0
 var coyote_timer: float = 0.0
 var jump_buffer_timer: float = 0.0
 
-var held_object: RigidBody3D = null
+var held_object: Grabbable = null
 var grab_basis := Basis.IDENTITY
 var is_resetting := false
 var hold_rotation_offset := Vector3.ZERO
@@ -94,16 +94,21 @@ func _physics_process(delta: float) -> void:
 			drop_object()
 		elif ray_cast_3d.is_colliding():
 			var obj = ray_cast_3d.get_collider()
-			if obj is RigidBody3D:
+			if obj is Grabbable:
 				pick_object(obj)
+			elif obj.has_method("interact"):
+				obj.interact(self)
 
 	if held_object:
 		update_held_object(delta)
 
+		if Input.is_action_just_pressed("use") and held_object.has_method("use"):
+			held_object.use(self)
+
 	move_and_slide()
 
 
-func pick_object(obj: RigidBody3D) -> void:
+func pick_object(obj: Grabbable) -> void:
 	held_object = obj
 	held_object.gravity_scale = 0.0
 	held_object.lock_rotation = true
@@ -116,11 +121,15 @@ func pick_object(obj: RigidBody3D) -> void:
 		deg_to_rad(hold_rotation_offset.y),
 		deg_to_rad(hold_rotation_offset.z)
 	))
+	if held_object.has_method("on_grab"):
+		held_object.on_grab(self)
 
 
 func drop_object() -> void:
 	if held_object == null:
 		return
+	if held_object.has_method("on_drop"):
+		held_object.on_drop(self)
 	held_object.freeze = false
 	held_object.gravity_scale = 1.0
 	held_object.lock_rotation = false
