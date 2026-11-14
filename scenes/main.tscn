@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://chmpjlg6iayoj" path="res://assets/texture_07.png" id="3_jyhfs"]
 [ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="4_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://c014gxys7lxt0" path="res://models/space.blend" id="4_tefeu"]
+[ext_resource type="PackedScene" uid="uid://2jqrif8kd4mn" path="res://scenes/hud.tscn" id="6_tefeu"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_o5qli"]
 panorama = ExtResource("1_o5qli")
@@ -98,3 +99,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.283391, 0)
 
 [node name="Camera3D" type="Camera3D" parent="player/head" unique_id=572415951]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.021245122, 0)
+
+[node name="HUD" parent="." unique_id=916865239 instance=ExtResource("6_tefeu")]

@@ -8,10 +8,12 @@ const SPRINT_SPEED = 8.0
 const CROUCH_SPEED = 3.0
 const JUMP_VELOCITY = 7.0
 const MOUSE_SENS = 0.1
-const GRAVITY = 1.5
+const GRAVITY = 5
 const COYOTE_TIME = 0.20      # Tiempo extra para saltar tras salir de un borde
 const JUMP_BUFFER_TIME = 0.20 # Tiempo que recuerda el botón antes de tocar el suelo
+const OXYGEN_BASE = 0.05
 
+var oxigen_cons = 0
 var coyote_timer: float = 0.0
 var jump_buffer_timer: float = 0.0
 # -----------------------------------------------------------
@@ -34,6 +36,8 @@ func _input(event: InputEvent) -> void:
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-79), deg_to_rad(79))
 
 func _physics_process(delta: float) -> void:
+	oxigen_cons = OXYGEN_BASE
+	speed = WALK_SPEED
 	if Input.is_action_pressed("crouch"):
 		speed = CROUCH_SPEED
 		head.position.y = 0.5
@@ -41,8 +45,10 @@ func _physics_process(delta: float) -> void:
 		head.position.y = 1.0
 		if Input.is_action_pressed("sprint"):
 			speed = SPRINT_SPEED
+			oxigen_cons = 0.1
 		else:
 			speed = WALK_SPEED
+			
 		
 	# Gravedad y control del Coyote Time
 	if is_on_floor():
@@ -69,8 +75,11 @@ func _physics_process(delta: float) -> void:
 	if direction:
 		velocity.x = direction.x * speed
 		velocity.z = direction.z * speed
+		
+		Global.oxygen_decay = oxigen_cons
 	else:
 		velocity.x = move_toward(velocity.x, 0, speed)
 		velocity.z = move_toward(velocity.z, 0, speed)
+		Global.oxygen_decay = 0.05
 
 	move_and_slide()

@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://2jqrif8kd4mn"]
+
+[ext_resource type="Script" uid="uid://bndmkk48mkbvk" path="res://scripts/hud.gd" id="1_ahhtf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pv2mu"]
+bg_color = Color(1, 1, 1, 1)
+corner_detail = 20
+
+[node name="HUD" type="CanvasLayer" unique_id=916865239]
+script = ExtResource("1_ahhtf")
+
+[node name="Panel" type="Panel" parent="." unique_id=1663197941]
+offset_left = 11.999999
+offset_top = 526.0
+offset_right = 52.0
+offset_bottom = 566.0
+scale = Vector2(7.7417054, 2.7447612)
+theme_override_styles/panel = SubResource("StyleBoxFlat_pv2mu")
+
+[node name="Label" type="Label" parent="." unique_id=1847380919]
+offset_left = 59.0
+offset_top = 535.0
+offset_right = 252.0
+offset_bottom = 628.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 68
+text = "100 %"
