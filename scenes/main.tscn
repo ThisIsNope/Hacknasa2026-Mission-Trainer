@@ -2,8 +2,8 @@
 
 [ext_resource type="Texture2D" uid="uid://ojig6kqcvkrt" path="res://assets/panorama_image.png" id="1_o5qli"]
 [ext_resource type="Script" uid="uid://dk3jplabsrxls" path="res://scripts/world_environment.gd" id="2_0wfyh"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_pv2mu"]
+[ext_resource type="Texture2D" uid="uid://chmpjlg6iayoj" path="res://assets/texture_07.png" id="3_jyhfs"]
+[ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="4_tbgi4"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_o5qli"]
 panorama = ExtResource("1_o5qli")
@@ -18,15 +18,18 @@ sky = SubResource("Sky_ig7tw")
 ambient_light_energy = 0.0
 glow_enabled = true
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pv2mu"]
+albedo_texture = ExtResource("3_jyhfs")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_426oi"]
+albedo_texture = ExtResource("3_jyhfs")
+uv1_triplanar = true
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pv2mu"]
+
 [node name="Main" type="Node3D" unique_id=1074344418]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0008611679, 0, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=50635228]
-transform = Transform3D(5.983526, 0, 0, 0, 0.01002405, 0, 0, 0, 5.9746137, 0, 0.016612828, 0.025212288)
-mesh = SubResource("BoxMesh_pv2mu")
-
-[node name="Camera3D" type="Camera3D" parent="." unique_id=572415951]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9776388, 2.0189223)
 
 [node name="env" type="Node3D" parent="." unique_id=920958157]
 
@@ -39,3 +42,38 @@ environment = SubResource("Environment_0xm2m")
 script = ExtResource("2_0wfyh")
 
 [node name="stage" type="Node3D" parent="." unique_id=963392303]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="stage" unique_id=261854462]
+transform = Transform3D(5.805023, 0, 0, 0, 0.056955498, 0, 0, 0, 6.326451, 0, 0.007746021, 0)
+use_collision = true
+size = Vector3(5, 1.491, 5)
+material = SubResource("StandardMaterial3D_pv2mu")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="stage" unique_id=2072889441]
+transform = Transform3D(2.5213413, 0, 0, 0, 1.7117655, 0, 0, 0, 2.438301, 8.604326, 0.93990326, -4.5910625)
+use_collision = true
+material = SubResource("StandardMaterial3D_426oi")
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="stage" unique_id=804499531]
+transform = Transform3D(2.5213413, 0, 0, 0, 1.7117655, 0, 0, 0, 2.438301, 8.604326, 2.877462, 5.4214063)
+use_collision = true
+material = SubResource("StandardMaterial3D_426oi")
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="stage" unique_id=878539221]
+transform = Transform3D(2.5213413, 0, 0, 0, 1.7117655, 0, 0, 0, 2.438301, -1.9693959, 4.95424, 5.4214063)
+use_collision = true
+material = SubResource("StandardMaterial3D_426oi")
+
+[node name="player" type="CharacterBody3D" parent="." unique_id=1437658975]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4744377, 0)
+script = ExtResource("4_tbgi4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="player" unique_id=358955140]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.63352036, 0)
+shape = SubResource("CapsuleShape3D_pv2mu")
+
+[node name="head" type="Node3D" parent="player" unique_id=1039159483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.283391, 0)
+
+[node name="Camera3D" type="Camera3D" parent="player/head" unique_id=572415951]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.021245122, 0)
