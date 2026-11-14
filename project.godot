@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Global="*uid://btvlwqc7sid84"
+ConexionMCP="*res://scripts/conexion_mcp.gd"
 
 [display]
 

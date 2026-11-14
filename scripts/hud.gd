@@ -10,6 +10,7 @@ var tween_mensaje: Tween
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	add_to_group("hud")   # ConexionMCP lo usa para mostrar mensajes
 	ox = 100
 	mensaje.visible = false
 	info.visible = false
