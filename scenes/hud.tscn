@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://2jqrif8kd4mn"]
 
 [ext_resource type="Script" uid="uid://bndmkk48mkbvk" path="res://scripts/hud.gd" id="1_ahhtf"]
+[ext_resource type="Texture2D" uid="uid://d2glc2atd2htn" path="res://assets/textures/crosshair.png" id="2_oo0fn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pv2mu"]
 bg_color = Color(1, 1, 1, 1)
@@ -25,3 +26,20 @@ offset_bottom = 628.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 68
 text = "100 %"
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1271371207]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="CenterContainer" unique_id=605332842]
+layout_mode = 2
+texture = ExtResource("2_oo0fn")

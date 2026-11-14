@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://chmpjlg6iayoj" path="res://assets/texture_07.png" id="3_jyhfs"]
 [ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="4_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://c014gxys7lxt0" path="res://models/space.blend" id="4_tefeu"]
+[ext_resource type="PackedScene" uid="uid://c3ofpynn3p45y" path="res://models/pistola.blend" id="5_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://2jqrif8kd4mn" path="res://scenes/hud.tscn" id="6_tefeu"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_o5qli"]
@@ -28,6 +29,8 @@ uv1_triplanar = true
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_426oi"]
 albedo_texture = ExtResource("3_jyhfs")
 uv1_triplanar = true
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_o6xl0"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pv2mu"]
 
@@ -86,6 +89,16 @@ layers = 0
 use_collision = true
 size = Vector3(6.16, 10.635, 5.4)
 
+[node name="RigidBody3D" type="RigidBody3D" parent="stage" unique_id=550631964]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5665126, 0.16260207, -7.538406)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="stage/RigidBody3D" unique_id=1019386135]
+transform = Transform3D(0.191567, 0, 0, 0, 0.7016853, 0, 0, 0, 1, 0, 0.5068402, 0)
+shape = SubResource("BoxShape3D_o6xl0")
+
+[node name="pistola" parent="stage/RigidBody3D" unique_id=1963992848 instance=ExtResource("5_o6xl0")]
+transform = Transform3D(-0.05556023, 0, -4.8572297e-09, 0, 0.05556023, 0, 4.8572297e-09, 0, -0.05556023, 0.024701238, 0.45097017, 0.009744167)
+
 [node name="player" type="CharacterBody3D" parent="." unique_id=1437658975]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4744377, 0)
 script = ExtResource("4_tbgi4")
@@ -99,5 +112,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.283391, 0)
 
 [node name="Camera3D" type="Camera3D" parent="player/head" unique_id=572415951]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.021245122, 0)
+
+[node name="RayCast3D" type="RayCast3D" parent="player/head" unique_id=1525298662]
+target_position = Vector3(0, 0, -5)
+
+[node name="Marker3D" type="Marker3D" parent="player/head" unique_id=72723064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.38015175, -1.5793027)
 
 [node name="HUD" parent="." unique_id=916865239 instance=ExtResource("6_tefeu")]
