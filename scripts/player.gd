@@ -8,20 +8,27 @@ const SPRINT_SPEED = 8.0
 const CROUCH_SPEED = 3.0
 const JUMP_VELOCITY = 7.0
 const MOUSE_SENS = 0.1
-
-# --- NUEVO: Tiempos de gracia para el salto (en segundos) ---
-const COYOTE_TIME = 0.15      # Tiempo extra para saltar tras salir de un borde
-const JUMP_BUFFER_TIME = 0.15 # Tiempo que recuerda el botón antes de tocar el suelo
+const GRAVITY = 1.5
+const COYOTE_TIME = 0.20      # Tiempo extra para saltar tras salir de un borde
+const JUMP_BUFFER_TIME = 0.20 # Tiempo que recuerda el botón antes de tocar el suelo
 
 var coyote_timer: float = 0.0
 var jump_buffer_timer: float = 0.0
 # -----------------------------------------------------------
 
 func _ready() -> void:
+	# Funciona en escritorio, pero en Web el navegador lo ignorará hasta el primer clic
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	
+
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
+	# Capturar el ratón cuando el usuario hace clic en el juego (obligatorio en Web)
+	if event is InputEventMouseButton and event.pressed:
+		if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+			return
+
+	# Solo rotar la cámara si el navegador realmente bloqueó el cursor
+	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(deg_to_rad(-event.relative.x * MOUSE_SENS))
 		head.rotate_x(deg_to_rad(-event.relative.y * MOUSE_SENS))
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-79), deg_to_rad(79))
@@ -42,7 +49,7 @@ func _physics_process(delta: float) -> void:
 		coyote_timer = COYOTE_TIME
 	else:
 		coyote_timer -= delta
-		velocity += get_gravity() * delta
+		velocity.y -= GRAVITY * delta
 
 	# Control del Jump Buffer
 	if Input.is_action_just_pressed("ui_accept"):
