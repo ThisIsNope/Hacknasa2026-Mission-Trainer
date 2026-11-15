@@ -392,6 +392,7 @@ async def lanzar_evento_nasa(
     mensaje: str = "",
     dificultad: str = "Normal",
     severidad: int = 0,
+    evento_id: int = 0,
 ) -> str:
     """Lanza en el juego un evento de clima espacial de la NASA (DONKI) con su mecánica.
 
@@ -410,10 +411,12 @@ async def lanzar_evento_nasa(
     dificultad: Fácil, Normal, Difícil o Extremo (tabla dificultades: tiempo límite,
                 multiplicador de daño y número de problemas).
     severidad: 1 a 5 para forzarla; 0 = calcularla con la intensidad.
+    evento_id: id del evento en la tabla eventos de Supabase (0 si no viene de ahí);
+               se guarda con el resultado para el ranking.
     """
     datos = await pedir(
         "evento_nasa", tipo=tipo, intensidad=intensidad, fecha=fecha,
-        mensaje=mensaje, dificultad=dificultad, severidad=severidad,
+        mensaje=mensaje, dificultad=dificultad, severidad=severidad, evento_id=evento_id,
     )
     return json.dumps(datos, ensure_ascii=False, indent=2)
 

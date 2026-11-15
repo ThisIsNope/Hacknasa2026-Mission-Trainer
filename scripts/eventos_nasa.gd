@@ -121,6 +121,10 @@ func lanzar(datos: Dictionary) -> Dictionary:
 		"mensaje": _texto(datos.get("mensaje")),
 		"problemas": [],
 	}
+	# id del evento en la tabla `eventos` de Supabase (si vino de ahí), para el ranking
+	var evento_id = datos.get("evento_id")
+	if (evento_id is int or evento_id is float) and int(evento_id) > 0:
+		activo["evento_id"] = int(evento_id)
 
 	match tipo:
 		"FLR":
@@ -157,6 +161,7 @@ func terminar(resultado: String) -> void:
 		return
 	var resumen := resumen_actual()
 	resumen["resultado"] = resultado
+	resumen["tiempo_usado_seg"] = snappedf(maxf(float(activo.get("duracion_seg", 0.0)) - maxf(_tiempo, 0.0), 0.0), 0.1)
 	var dano := _dano_total
 	resumen["dano_recibido_pct"] = snappedf(dano, 0.1)
 	resumen.erase("tiempo_restante_seg")
