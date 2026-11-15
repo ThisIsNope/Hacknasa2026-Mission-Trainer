@@ -15,8 +15,9 @@ import itertools
 import json
 import sys
 
+from websockets.asyncio.client import connect
 from websockets.asyncio.server import serve
-from websockets.exceptions import ConnectionClosed
+from websockets.exceptions import ConnectionClosed, InvalidHandshake
 
 try:  # mcp 2.x
     from mcp.server.mcpserver import MCPServer
@@ -48,11 +49,16 @@ mcp = MCPServer(
     ),
 )
 
-juegos: list = []                      # conexiones abiertas (la última es la activa)
+juegos: list = []                      # conexiones de juego (la última es la activa)
+relays: set = set()                    # otras copias de este servidor conectadas a esta
+relay_ws = None                        # si esta copia es secundaria: conexión a la principal
 pendientes: dict[str, asyncio.Future] = {}
 eventos: list[dict] = []
 _ids = itertools.count(1)
-escuchando = False                     # True si esta copia tiene el puerto
+
+# Claude Desktop puede iniciar varias copias de este servidor. Solo una puede
+# abrir el puerto: esa es la "principal" y es a la que se conecta el juego.
+# Las demás se conectan a la principal en /relay y le pasan sus comandos.
 
 
 def log(*args) -> None:
@@ -60,24 +66,43 @@ def log(*args) -> None:
     print(*args, file=sys.stderr, flush=True)
 
 
+def procesar(raw) -> dict | None:
+    """Respuestas -> resuelven el comando pendiente; eventos -> se guardan."""
+    try:
+        datos = json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(datos, dict):
+        return None
+    if "id" in datos:
+        fut = pendientes.pop(str(datos["id"]), None)
+        if fut and not fut.done():
+            fut.set_result(datos)
+    elif datos.get("tipo") == "evento":
+        eventos.append(datos)
+        del eventos[:-100]  # guarda solo los últimos 100
+    return datos
+
+
+async def manejar_conexion(ws) -> None:
+    if ws.request.path.startswith("/relay"):
+        await atender_relay(ws)
+    else:
+        await manejar_juego(ws)
+
+
 async def manejar_juego(ws) -> None:
     juegos.append(ws)
     log("Juego conectado")
     try:
         async for raw in ws:
-            try:
-                datos = json.loads(raw)
-            except json.JSONDecodeError:
-                continue
-            if not isinstance(datos, dict):
-                continue
-            if "id" in datos:  # respuesta a un comando
-                fut = pendientes.pop(str(datos["id"]), None)
-                if fut and not fut.done():
-                    fut.set_result(datos)
-            elif datos.get("tipo") == "evento":
-                eventos.append(datos)
-                del eventos[:-100]  # guarda solo los últimos 100
+            datos = procesar(raw)
+            if datos and datos.get("tipo") == "evento":
+                for r in list(relays):  # las otras copias también se enteran
+                    try:
+                        await r.send(raw)
+                    except Exception:
+                        relays.discard(r)
     except ConnectionClosed:
         pass  # el juego se cerró sin despedirse (normal al cerrar la pestaña)
     finally:
@@ -86,31 +111,74 @@ async def manejar_juego(ws) -> None:
         log("Juego desconectado")
 
 
+async def atender_relay(ws) -> None:
+    relays.add(ws)
+    try:
+        async for raw in ws:
+            try:
+                datos = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(datos, dict) and "id" in datos:
+                asyncio.create_task(reenviar(ws, datos))
+    except ConnectionClosed:
+        pass
+    finally:
+        relays.discard(ws)
+
+
+async def reenviar(ws, datos: dict) -> None:
+    """Ejecuta en el juego un comando que llegó de otra copia y le devuelve el resultado."""
+    try:
+        args = datos.get("args") if isinstance(datos.get("args"), dict) else {}
+        res = {"id": datos["id"], "ok": True, "datos": await pedir(str(datos.get("cmd")), **args)}
+    except ToolError as e:
+        res = {"id": datos["id"], "ok": False, "error": str(e)}
+    try:
+        await ws.send(json.dumps(res, ensure_ascii=False))
+    except ConnectionClosed:
+        pass
+
+
+async def ser_secundaria() -> None:
+    """Se conecta a la copia principal y espera ahí hasta que se cierre."""
+    global relay_ws
+    async with connect(f"ws://localhost:{PUERTO}/relay") as ws:
+        relay_ws = ws
+        log("Conectado a la copia principal del servidor")
+        try:
+            async for raw in ws:
+                procesar(raw)
+        except ConnectionClosed:
+            pass
+        finally:
+            relay_ws = None
+
+
 async def pedir(cmd: str, **args):
-    """Manda un comando al juego y espera su respuesta."""
-    if not juegos and not escuchando:
-        raise ToolError(
-            f"Otra copia de este servidor está usando el puerto {PUERTO}, así que el "
-            "juego está conectado a ella. Usa el juego desde el mismo tipo de chat "
-            "(o cierra la otra copia) e inténtalo de nuevo."
-        )
-    if not juegos:
+    """Manda un comando al juego (directo o a través de la copia principal)."""
+    if juegos:
+        destino, espera = juegos[-1], TIEMPO_ESPERA
+    elif relay_ws is not None:
+        destino, espera = relay_ws, TIEMPO_ESPERA + 1.0
+    else:
         raise ToolError(
             "No hay ningún juego conectado. Abre el juego en Godot, o en el "
             "navegador agregando ?mcp=1 al final de la dirección."
         )
-    ws = juegos[-1]
     id_ = str(next(_ids))
     fut = asyncio.get_running_loop().create_future()
     pendientes[id_] = fut
     try:
-        await ws.send(json.dumps({"id": id_, "cmd": cmd, "args": args}, ensure_ascii=False))
-        respuesta = await asyncio.wait_for(fut, TIEMPO_ESPERA)
+        await destino.send(json.dumps({"id": id_, "cmd": cmd, "args": args}, ensure_ascii=False))
+        respuesta = await asyncio.wait_for(fut, espera)
     except asyncio.TimeoutError:
         raise ToolError(
             "El juego no respondió a tiempo. Si está en el navegador, revisa "
             "que su pestaña esté visible (en segundo plano se congela)."
         )
+    except ConnectionClosed:
+        raise ToolError("Se perdió la conexión con el juego. Inténtalo de nuevo.")
     finally:
         pendientes.pop(id_, None)
     if not respuesta.get("ok"):
@@ -164,22 +232,21 @@ async def leer_eventos() -> str:
 
 
 async def mantener_websocket() -> None:
-    """Abre el puerto para el juego. Si otra copia del servidor ya lo tiene
-    (Claude Desktop a veces inicia más de una), sigue funcionando y reintenta."""
-    global escuchando
-    avisado = False
+    """Intenta ser la copia principal; si el puerto ya está tomado por otra
+    copia, se conecta a ella como secundaria. Si la principal se cierra, vuelve
+    a intentar ser la principal."""
     while True:
         try:
-            async with serve(manejar_juego, "localhost", PUERTO):
-                escuchando = True
+            async with serve(manejar_conexion, "localhost", PUERTO):
                 log(f"Esperando al juego en ws://localhost:{PUERTO}")
                 await asyncio.Future()  # corre para siempre
         except OSError:
-            escuchando = False
-            if not avisado:
-                log(f"El puerto {PUERTO} está ocupado (¿otra copia del servidor?). Reintentando...")
-                avisado = True
-            await asyncio.sleep(5)
+            pass  # puerto ocupado: otra copia es la principal
+        try:
+            await ser_secundaria()
+        except (OSError, InvalidHandshake, ConnectionClosed):
+            pass
+        await asyncio.sleep(2)
 
 
 async def main() -> None:
