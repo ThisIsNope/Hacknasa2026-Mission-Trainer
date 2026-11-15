@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Mission Trainer"
-run/main_scene="uid://b1s1i44cbvl3k"
+run/main_scene="uid://o5d7vm7m1dha"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
