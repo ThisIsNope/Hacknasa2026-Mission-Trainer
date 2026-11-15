@@ -32,6 +32,8 @@ uv1_triplanar = true
 albedo_texture = ExtResource("3_jyhfs")
 uv1_triplanar = true
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_o6xl0"]
+
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pv2mu"]
 
 [node name="Main" type="Node3D" unique_id=1074344418]
@@ -92,6 +94,10 @@ size = Vector3(6.16, 10.635, 5.4)
 [node name="Soplete" type="RigidBody3D" parent="stage" unique_id=550631964]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5665126, 0.16260207, -7.538406)
 script = ExtResource("7_soplete")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="stage/Soplete" unique_id=1019386135]
+transform = Transform3D(0.191567, 0, 0, 0, 0.7016853, 0, 0, 0, 1, 0, 0.5068402, 0)
+shape = SubResource("BoxShape3D_o6xl0")
 
 [node name="pistola" parent="stage/Soplete" unique_id=1963992848 instance=ExtResource("5_o6xl0")]
 transform = Transform3D(-0.05556023, 0, -4.8572297e-09, 0, 0.05556023, 0, 4.8572297e-09, 0, -0.05556023, 0.024701238, 0.45097017, 0.009744167)
