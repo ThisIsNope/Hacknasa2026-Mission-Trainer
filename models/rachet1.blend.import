@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ytcwwpfs2bpl"
-path="res://.godot/imported/wrench.blend-5fd4a7b2be4abe5e80b54763b058cd73.scn"
+uid="uid://bau225s0kgxyj"
+path="res://.godot/imported/rachet1.blend-084cc1fdb2c9e8edbba4e95e4ec9a0dc.scn"
 
 [deps]
 
-source_file="res://assets/wrench.blend"
-dest_files=["res://.godot/imported/wrench.blend-5fd4a7b2be4abe5e80b54763b058cd73.scn"]
+source_file="res://models/rachet1.blend"
+dest_files=["res://.godot/imported/rachet1.blend-084cc1fdb2c9e8edbba4e95e4ec9a0dc.scn"]
 
 [params]
 

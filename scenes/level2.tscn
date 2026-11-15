@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://b1s1i44cbvl3k"]
 
 [ext_resource type="PackedScene" uid="uid://me57alo25gq" path="res://models/salas/mid.blend" id="1_cleqw"]
-[ext_resource type="Texture2D" uid="uid://ojig6kqcvkrt" path="res://assets/panorama_image.png" id="16_panorama"]
 [ext_resource type="Script" uid="uid://yecwnasvkew7" path="res://scripts/Room/interactor.gd" id="2_wvb8j"]
 [ext_resource type="Script" uid="uid://5563vt3qlv2u" path="res://scripts/Room/interactor2.gd" id="3_g8vcy"]
 [ext_resource type="Script" uid="uid://bgqkei3ixog2h" path="res://scripts/Room/interactor3.gd" id="4_cqal4"]
@@ -16,6 +15,7 @@
 [ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="13_cgqhq"]
 [ext_resource type="PackedScene" uid="uid://dejjwv5ub4q1p" path="res://models/salas/salaprincipal.GLB.blend" id="14_ttvjw"]
 [ext_resource type="PackedScene" uid="uid://2jqrif8kd4mn" path="res://scenes/hud.tscn" id="15_ac7c3"]
+[ext_resource type="Texture2D" uid="uid://ojig6kqcvkrt" path="res://assets/panorama_image.png" id="16_panorama"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wfyh"]
 albedo_color = Color(0.22769701, 0.21775874, 0.22423172, 1)
@@ -461,6 +461,12 @@ visible = false
 use_collision = true
 size = Vector3(132.86359, 8.3602295, 0.15917969)
 
+[node name="PisoEntradaOeste" type="CSGBox3D" parent="Stage/COLLISION" unique_id=1037882196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.1, 3.67, 0)
+visible = false
+use_collision = true
+size = Vector3(2, 0.4, 6)
+
 [node name="Env" type="Node3D" parent="." unique_id=156471619]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Env" unique_id=547372308]
@@ -508,15 +514,9 @@ size = Vector3(5.865, 5.445, 4.57)
 
 [node name="HUD" parent="." unique_id=916865239 instance=ExtResource("15_ac7c3")]
 
-[node name="PisoEntradaOeste" type="CSGBox3D" parent="Stage/COLLISION"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.1, 3.67, 0)
-visible = false
-use_collision = true
-size = Vector3(2, 0.4, 6)
-
-[node name="Refugio" type="Area3D" parent="." groups=["refugio"]]
+[node name="Refugio" type="Area3D" parent="." unique_id=2006861945 groups=["refugio"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.5, 8, 11)
 collision_layer = 0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Refugio"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Refugio" unique_id=1740706657]
 shape = SubResource("BoxShape3D_refugio")
