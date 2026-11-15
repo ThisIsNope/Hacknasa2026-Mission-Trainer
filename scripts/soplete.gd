@@ -9,6 +9,9 @@ signal sin_combustible
 @export var potencia: float = 35.0         # % de soldadura por segundo
 @export var combustible_max: float = 100.0
 @export var gasto: float = 4.0             # combustible por segundo mientras está encendido
+## Punta del soplete, relativa al soplete (de aquí sale la llama).
+## Para ajustarla a ojo: agrega un Marker3D hijo llamado "Boquilla" y muévelo a la punta.
+@export var boquilla_local: Vector3 = Vector3(0, 0.68, -0.5)
 
 var combustible: float
 var activo := false
@@ -78,7 +81,7 @@ func _physics_process(delta: float) -> void:
 			obj.recibir_soldadura(potencia * delta)
 
 	# La llama sale del soplete hacia el punto que miras
-	var boquilla := global_position
+	var boquilla := posicion_boquilla()
 	llama.global_position = boquilla
 	var dir := punto - boquilla
 	if dir.length() > 0.05 and absf(dir.normalized().dot(Vector3.UP)) < 0.99:
@@ -89,6 +92,14 @@ func _physics_process(delta: float) -> void:
 	chispas.global_position = punto
 	luz.global_position = punto - dir.normalized() * 0.15
 	luz.light_energy = randf_range(1.5, 3.0)
+
+
+## Posición global de la punta: el Marker3D "Boquilla" si existe, si no boquilla_local.
+func posicion_boquilla() -> Vector3:
+	var marcador := get_node_or_null("Boquilla")
+	if marcador is Node3D:
+		return (marcador as Node3D).global_position
+	return to_global(boquilla_local)
 
 
 func _crear_efectos() -> void:

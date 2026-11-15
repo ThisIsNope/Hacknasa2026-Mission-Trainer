@@ -37,6 +37,7 @@ func _ready() -> void:
 			set_process(false)
 			return
 	get_tree().node_added.connect(_on_nodo_agregado)
+	_conectar_eventos_nasa.call_deferred()   # EventosNasa se carga después de este autoload
 	_conectar()
 
 
@@ -123,6 +124,22 @@ func _ejecutar(cmd: String, args: Dictionary) -> Array:
 		"estado":
 			return [true, _estado()]
 
+		"evento_nasa":
+			var eventos := get_node_or_null("/root/EventosNasa")
+			if eventos == null:
+				return [false, "El juego no tiene el autoload EventosNasa"]
+			var resumen: Dictionary = eventos.lanzar(args)
+			if resumen.has("error"):
+				return [false, resumen["error"]]
+			return [true, resumen]
+
+		"cancelar_evento":
+			var eventos := get_node_or_null("/root/EventosNasa")
+			if eventos == null or eventos.activo.is_empty():
+				return [false, "No hay ningún evento en curso"]
+			eventos.terminar("cancelado")
+			return [true, {"cancelado": true}]
+
 		"recargar_oxigeno":
 			var g := get_node_or_null("/root/Global")
 			if g == null:
@@ -175,10 +192,22 @@ func _estado() -> Dictionary:
 			"posicion": [snappedf(p.x, 0.01), snappedf(p.y, 0.01), snappedf(p.z, 0.01)],
 			"objeto_en_mano": str(en_mano.name) if is_instance_valid(en_mano) else null,
 		}
+
+	var eventos := get_node_or_null("/root/EventosNasa")
+	if eventos and not eventos.activo.is_empty():
+		estado["evento_nasa"] = eventos.resumen_actual()
 	return estado
 
 
 # ---------------------------------------------------------------- eventos
+
+func _conectar_eventos_nasa() -> void:
+	var eventos := get_node_or_null("/root/EventosNasa")
+	if eventos == null:
+		return
+	eventos.evento_iniciado.connect(func(r: Dictionary): _evento("evento_nasa_inicio", {"datos": r}))
+	eventos.evento_terminado.connect(func(r: Dictionary): _evento("evento_nasa_fin", {"datos": r}))
+
 
 func _on_nodo_agregado(nodo: Node) -> void:
 	if nodo.has_signal("soldado"):

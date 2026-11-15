@@ -63,7 +63,10 @@ mcp = MCPServer(
         "con un soplete que gasta combustible. Usa obtener_estado para ver cómo va "
         "la misión, leer_eventos para saber qué pasó, y mostrar_mensaje para "
         "darle instrucciones al jugador en pantalla. Si el jugador abrió el juego "
-        "en otro dispositivo con ?sala=CODIGO, usa conectar_sala con ese código."
+        "en otro dispositivo con ?sala=CODIGO, usa conectar_sala con ese código. "
+        "Con lanzar_evento_nasa provocas en el juego un evento real de clima espacial "
+        "de la NASA (DONKI); si tienes acceso a la base de datos de Supabase, toma el "
+        "evento de la tabla eventos (y su texto de mensajes_ia)."
     ),
 )
 
@@ -81,6 +84,9 @@ nube_ws = None                         # conexión abierta con el relay
 nube_juego = False                     # ¿hay un juego en la sala?
 nube_error = ""                        # último problema al conectar con el relay
 _tarea_nube: asyncio.Task | None = None
+# La sala se guarda en un archivo para que todas las copias de este servidor
+# (Claude puede abrir varias) usen la misma sin tener que repetir conectar_sala.
+ARCHIVO_SALA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sala_actual.txt")
 
 # Claude Desktop puede iniciar varias copias de este servidor. Solo una puede
 # abrir el puerto: esa es la "principal" y es a la que se conecta el juego.
@@ -261,6 +267,32 @@ async def mantener_nube(codigo: str) -> None:
         espera = min(espera * 2.0, 30.0)
 
 
+def leer_sala_guardada() -> str:
+    try:
+        with open(ARCHIVO_SALA, encoding="utf-8") as f:
+            codigo = f.read().strip()
+    except OSError:
+        return ""
+    return codigo if SALA_VALIDA.fullmatch(codigo) else ""
+
+
+def guardar_sala(codigo: str) -> None:
+    try:
+        with open(ARCHIVO_SALA, "w", encoding="utf-8") as f:
+            f.write(codigo)
+    except OSError as e:
+        log("No se pudo guardar la sala:", e)
+
+
+async def seguir_sala_guardada() -> None:
+    """Si otra copia cambia la sala, esta copia también se cambia."""
+    while True:
+        await asyncio.sleep(2)
+        codigo = leer_sala_guardada()
+        if codigo != sala_actual:
+            cambiar_sala(codigo)
+
+
 def cambiar_sala(codigo: str) -> None:
     global sala_actual, nube_error, _tarea_nube
     if _tarea_nube is not None:
@@ -283,6 +315,7 @@ async def conectar_sala(codigo: str) -> str:
     if codigo and not SALA_VALIDA.fullmatch(codigo):
         raise ToolError("Código de sala inválido: usa de 3 a 40 letras, números, - o _.")
     cambiar_sala(codigo)
+    guardar_sala(codigo)
     if not codigo:
         return "Desconectado de la sala."
     # Esperamos un poco a que se conecte para dar una respuesta útil.
@@ -352,9 +385,51 @@ async def recargar_combustible(porcentaje: float = 100.0) -> str:
 
 
 @mcp.tool()
+async def lanzar_evento_nasa(
+    tipo: str,
+    intensidad: str = "",
+    fecha: str = "",
+    mensaje: str = "",
+    dificultad: str = "Normal",
+    severidad: int = 0,
+) -> str:
+    """Lanza en el juego un evento de clima espacial de la NASA (DONKI) con su mecánica.
+
+    tipo:
+      FLR fulguración solar: cuenta regresiva de 10 s y estallido de radiación; el jugador
+          debe protegerse (sala blindada, escudo, o agacharse si no hay sala).
+      CME eyección de masa coronal: sacudida y aparecen ventilas/paneles dañados que hay
+          que soldar antes del tiempo límite.
+      GST tormenta geomagnética: fallas eléctricas (HUD y luces parpadean, soplete más
+          débil) más reparaciones.
+      SEP partículas solares: radiación sostenida que gasta oxígeno si no se protege.
+      IPS choque interplanetario: sacudida fuerte que empuja objetos sueltos.
+    intensidad: tal como viene en la tabla eventos de Supabase ("M2.5", "Kp 7", "624 km/s").
+    fecha: fecha real del evento (inicio en la tabla eventos), se muestra en pantalla.
+    mensaje: alerta corta para el jugador (mensajes_ia.mensaje si existe), sin emojis.
+    dificultad: Fácil, Normal, Difícil o Extremo (tabla dificultades: tiempo límite,
+                multiplicador de daño y número de problemas).
+    severidad: 1 a 5 para forzarla; 0 = calcularla con la intensidad.
+    """
+    datos = await pedir(
+        "evento_nasa", tipo=tipo, intensidad=intensidad, fecha=fecha,
+        mensaje=mensaje, dificultad=dificultad, severidad=severidad,
+    )
+    return json.dumps(datos, ensure_ascii=False, indent=2)
+
+
+@mcp.tool()
+async def cancelar_evento_nasa() -> str:
+    """Cancela el evento de la NASA que esté en curso y quita sus efectos."""
+    await pedir("cancelar_evento")
+    return "Evento cancelado."
+
+
+@mcp.tool()
 async def leer_eventos() -> str:
     """Devuelve lo que pasó en el juego desde la última lectura: paneles soldados,
-    soplete sin combustible, oxígeno bajo u oxígeno agotado."""
+    soplete sin combustible, oxígeno bajo u oxígeno agotado, y el inicio y fin de los
+    eventos de la NASA (evento_nasa_inicio / evento_nasa_fin, con su resultado)."""
     if not eventos:
         return "No hay eventos nuevos."
     texto = json.dumps(eventos, ensure_ascii=False, indent=2)
@@ -384,11 +459,14 @@ async def main() -> None:
     tarea = asyncio.create_task(mantener_websocket())
     sala_inicial = os.environ.get("MISSION_SALA", "").strip()
     if SALA_VALIDA.fullmatch(sala_inicial):
-        cambiar_sala(sala_inicial)
+        guardar_sala(sala_inicial)
+    cambiar_sala(leer_sala_guardada())
+    seguidor = asyncio.create_task(seguir_sala_guardada())
     try:
         await mcp.run_stdio_async()
     finally:
         tarea.cancel()
+        seguidor.cancel()
         cambiar_sala("")
 
 
