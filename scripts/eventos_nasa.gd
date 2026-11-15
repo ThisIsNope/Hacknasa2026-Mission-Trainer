@@ -330,7 +330,7 @@ func _crear_soldable(nombre: String, problema: Dictionary) -> Node3D:
 	var caja := CSGBox3D.new()
 	caja.set_script(SOLDABLE)
 	caja.name = nombre.validate_node_name()
-	caja.size = Vector3(0.6, 0.5, 0.08)
+	caja.size = Vector3(0.6, 0.5, 0.08) * _escala_jugador()
 	caja.use_collision = true
 	caja.set("nombre", nombre)
 	caja.set_meta("dano_base", problema["dano_base"])
@@ -360,57 +360,82 @@ func _buscar_lugar(usados: Array[Vector3]) -> Dictionary:
 	var espacio := jugador.get_world_3d().direct_space_state
 	var excluir := _cuerpos_dinamicos(jugador)
 	var zonas := get_tree().get_nodes_in_group("zona_reparacion")
-	var pies := jugador.global_position
+	var s := _escala_jugador()
+	# Suelo bajo el jugador y altura de sus ojos (en level.tscn el jugador mide ~4.5 m)
+	var cabeza := jugador.get_node_or_null("head") as Node3D
+	var ojos := cabeza.global_position if cabeza else jugador.global_position + Vector3.UP * s
+	var bajo := _rayo(espacio, jugador.global_position, jugador.global_position + Vector3.DOWN * 30.0, excluir)
+	var suelo_y: float = bajo.position.y if not bajo.is_empty() else jugador.global_position.y - s
+	var altura := maxf(ojos.y - suelo_y, 1.0)
+	var alto_pieza := altura * 0.75                      # un poco abajo de los ojos
+	var alcance := _alcance_soplete() * s
+	var piso_ok := altura < alcance * 0.85               # ¿alcanza el soplete algo en el suelo?
 	var mejor := {}
-	for intento in 60:
+	for intento in 80:
 		var angulo := randf() * TAU
-		var distancia := randf_range(RADIO_MIN, RADIO_MAX)
-		var pecho := pies + Vector3(cos(angulo), 0, sin(angulo)) * distancia + Vector3.UP * 1.2
+		var distancia := randf_range(RADIO_MIN, RADIO_MAX) * s
+		var pecho := Vector3(jugador.global_position.x, suelo_y, jugador.global_position.z) \
+			+ Vector3(cos(angulo), 0, sin(angulo)) * distancia + Vector3.UP * alto_pieza
 		# Libre (no dentro de una pared o caja)
-		if _choca_punto(espacio, pecho, excluir) or _choca_punto(espacio, pecho + Vector3.DOWN * 0.7, excluir):
+		if _choca_punto(espacio, pecho, excluir) or _choca_punto(espacio, pecho + Vector3.DOWN * alto_pieza * 0.6, excluir):
 			continue
-		# Suelo debajo, a menos de 3 m
-		var suelo := _rayo(espacio, pecho, pecho + Vector3.DOWN * 3.0, excluir)
+		# Suelo debajo
+		var suelo := _rayo(espacio, pecho, pecho + Vector3.DOWN * (alto_pieza + 2.0 * s), excluir)
 		if suelo.is_empty() or suelo.normal.y < 0.7:
 			continue
 		var pie: Vector3 = suelo.position
-		pecho = pie + Vector3.UP * 1.2
+		pecho = pie + Vector3.UP * alto_pieza
 		if not zonas.is_empty() and not _dentro_de_zona(espacio, pecho, zonas):
 			continue
 		var lejos := true
 		for u in usados:
-			if u.distance_to(pie) < SEPARACION_MIN:
+			if u.distance_to(pie) < SEPARACION_MIN * s:
 				lejos = false
 				break
 		if not lejos:
 			continue
 		# ¿Interior? techo arriba y paredes en al menos 3 de 4 direcciones
-		var techo := _rayo(espacio, pecho, pecho + Vector3.UP * 8.0, excluir)
+		var techo := _rayo(espacio, pecho, pecho + Vector3.UP * 8.0 * s, excluir)
 		var paredes := 0
 		var pared_cercana := {}
 		for k in 8:
 			var dir := Vector3.FORWARD.rotated(Vector3.UP, k * TAU / 8.0)
-			var hit := _rayo(espacio, pecho, pecho + dir * 10.0, excluir)
+			var hit := _rayo(espacio, pecho, pecho + dir * 10.0 * s, excluir)
 			if hit.is_empty() or absf(hit.normal.y) > 0.7:
 				continue
 			if k % 2 == 0:
 				paredes += 1
 			var d := pecho.distance_to(hit.position)
-			if d <= 1.5 and (pared_cercana.is_empty() or d < pared_cercana["d"]):
+			if d <= 1.5 * s and (pared_cercana.is_empty() or d < pared_cercana["d"]):
 				pared_cercana = {"d": d, "pos": hit.position, "normal": hit.normal}
 		var interior := not techo.is_empty() and paredes >= 3
 		var t: Transform3D
 		if not pared_cercana.is_empty():
 			var n: Vector3 = pared_cercana["normal"]
-			t = Transform3D(Basis.looking_at(-n, Vector3.UP), pared_cercana["pos"] + n * 0.06)
-		else:   # en el suelo, acostada
-			t = Transform3D(Basis.looking_at(Vector3.DOWN, Vector3.FORWARD), pie + Vector3.UP * 0.06)
+			t = Transform3D(Basis.looking_at(-n, Vector3.UP), pared_cercana["pos"] + n * 0.06 * s)
+		elif piso_ok:   # en el suelo, acostada
+			t = Transform3D(Basis.looking_at(Vector3.DOWN, Vector3.FORWARD), pie + Vector3.UP * 0.06 * s)
+		else:
+			continue    # el soplete no llegaría al suelo desde la altura del jugador
 		var lugar := {"transform": t, "pie": pie, "interior": interior}
 		if interior and not pared_cercana.is_empty():
 			return lugar          # el mejor caso: en la pared de un cuarto
 		if mejor.is_empty() or (interior and not mejor["interior"]):
 			mejor = lugar
 	return mejor
+
+
+## Tamaño del jugador respecto a lo normal (en level.tscn está escalado x2.61).
+func _escala_jugador() -> float:
+	var jugador := _jugador()
+	if jugador == null:
+		return 1.0
+	return clampf(jugador.global_basis.get_scale().y, 0.5, 5.0)
+
+
+func _alcance_soplete() -> float:
+	var sop := get_tree().get_first_node_in_group("soplete")
+	return float(sop.alcance) if sop and "alcance" in sop else 2.5
 
 
 func _rayo(espacio: PhysicsDirectSpaceState3D, desde: Vector3, hasta: Vector3, excluir: Array[RID]) -> Dictionary:
@@ -463,25 +488,26 @@ func _colocar_en_pared(rep: Node3D, i: int, total: int) -> void:
 		var en_mano = jugador.get("held_object")
 		if en_mano is CollisionObject3D:
 			excluir.append((en_mano as CollisionObject3D).get_rid())
-	origen += Vector3.DOWN * 0.3          # a la altura del pecho
+	var s := _escala_jugador()
+	origen += Vector3.DOWN * 0.3 * s      # a la altura del pecho
 	adelante.y = 0.0
 	if adelante.length() < 0.01:
 		adelante = Vector3.FORWARD
 	# ~28 grados entre reparaciones (no se enciman) y alturas alternadas
 	var mitad := minf(14.0 * (total - 1), 70.0)
 	var abanico := 0.0 if total <= 1 else lerpf(-mitad, mitad, float(i) / float(total - 1))
-	origen += Vector3.UP * (0.2 if i % 2 == 1 else -0.1)
+	origen += Vector3.UP * (0.2 if i % 2 == 1 else -0.1) * s
 	var dir := adelante.normalized().rotated(Vector3.UP, deg_to_rad(abanico))
 
-	var query := PhysicsRayQueryParameters3D.create(origen, origen + dir * ALCANCE_REPARACION)
+	var query := PhysicsRayQueryParameters3D.create(origen, origen + dir * ALCANCE_REPARACION * s)
 	query.exclude = excluir
 	var hit := rep.get_world_3d().direct_space_state.intersect_ray(query)
 
-	var pos := origen + dir * 1.6           # sin pared cerca: flota frente al jugador
+	var pos := origen + dir * 1.6 * s       # sin pared cerca: flota frente al jugador
 	var normal := -dir
 	if not hit.is_empty() and hit.collider != rep and absf(hit.normal.y) < 0.7:
 		normal = hit.normal
-		pos = hit.position + normal * 0.06
+		pos = hit.position + normal * 0.06 * s
 	var arriba := Vector3.UP if absf(normal.dot(Vector3.UP)) < 0.9 else Vector3.FORWARD
 	rep.global_transform = Transform3D(Basis.looking_at(-normal, arriba), pos)
 
