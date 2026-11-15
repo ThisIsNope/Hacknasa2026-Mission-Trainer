@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwsiu8dq7kqiu"
 path.s3tc="res://.godot/imported/HDU_02.jpg-00ef399f79c4765a2933e3b691549248.s3tc.ctex"
-path.etc2="res://.godot/imported/HDU_02.jpg-00ef399f79c4765a2933e3b691549248.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://models/salas/textures/HDU_02.jpg"
-dest_files=["res://.godot/imported/HDU_02.jpg-00ef399f79c4765a2933e3b691549248.s3tc.ctex", "res://.godot/imported/HDU_02.jpg-00ef399f79c4765a2933e3b691549248.etc2.ctex"]
+dest_files=["res://.godot/imported/HDU_02.jpg-00ef399f79c4765a2933e3b691549248.s3tc.ctex"]
 
 [params]
 

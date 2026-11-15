@@ -6,9 +6,6 @@
 [ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="4_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://c014gxys7lxt0" path="res://models/space.blend" id="4_tefeu"]
 [ext_resource type="PackedScene" uid="uid://c3ofpynn3p45y" path="res://models/pistola.blend" id="5_o6xl0"]
-[ext_resource type="PackedScene" uid="uid://2jqrif8kd4mn" path="res://scenes/hud.tscn" id="6_tefeu"]
-[ext_resource type="Script" path="res://scripts/soplete.gd" id="7_soplete"]
-[ext_resource type="Script" path="res://scripts/soldable.gd" id="8_soldable"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_o5qli"]
 panorama = ExtResource("1_o5qli")
@@ -93,7 +90,6 @@ size = Vector3(6.16, 10.635, 5.4)
 
 [node name="Soplete" type="RigidBody3D" parent="stage" unique_id=550631964]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5665126, 0.16260207, -7.538406)
-script = ExtResource("7_soplete")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="stage/Soplete" unique_id=1019386135]
 transform = Transform3D(0.191567, 0, 0, 0, 0.7016853, 0, 0, 0, 1, 0, 0.5068402, 0)
@@ -106,7 +102,6 @@ transform = Transform3D(-0.05556023, 0, -4.8572297e-09, 0, 0.05556023, 0, 4.8572
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.55, -8.5)
 use_collision = true
 size = Vector3(1.2, 1, 0.08)
-script = ExtResource("8_soldable")
 
 [node name="player" type="CharacterBody3D" parent="." unique_id=1437658975]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4744377, 0)
@@ -127,5 +122,3 @@ target_position = Vector3(0, 0, -5)
 
 [node name="Marker3D" type="Marker3D" parent="player/head" unique_id=72723064]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.38015175, -1.5793027)
-
-[node name="HUD" parent="." unique_id=916865239 instance=ExtResource("6_tefeu")]

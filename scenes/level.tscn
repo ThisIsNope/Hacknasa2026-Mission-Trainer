@@ -1,14 +1,25 @@
 [gd_scene format=3 uid="uid://bkp2oax7uiakc"]
 
 [ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="1_2q6dc"]
+[ext_resource type="PackedScene" uid="uid://me57alo25gq" path="res://models/salas/mid.blend" id="1_64w2a"]
+[ext_resource type="PackedScene" uid="uid://c3ofpynn3p45y" path="res://models/pistola.blend" id="1_b121j"]
 [ext_resource type="Script" uid="uid://c22ffv51ul0t" path="res://scripts/Room/interact.gd" id="1_mx8sn"]
+[ext_resource type="Script" uid="uid://yecwnasvkew7" path="res://scripts/Room/interactor.gd" id="1_ppgk2"]
+[ext_resource type="Script" uid="uid://5563vt3qlv2u" path="res://scripts/Room/interactor2.gd" id="2_8iemx"]
 [ext_resource type="Script" uid="uid://c67iofn4tuy86" path="res://scripts/Room/interact2.gd" id="2_ppgk2"]
 [ext_resource type="Script" uid="uid://dws24o5aikadk" path="res://scripts/Room/interact3.gd" id="3_2r41h"]
+[ext_resource type="Script" uid="uid://bgqkei3ixog2h" path="res://scripts/Room/interactor3.gd" id="3_64w2a"]
+[ext_resource type="Script" uid="uid://b8v0vdp0q8oie" path="res://scripts/soplete.gd" id="7_8c41q"]
+[ext_resource type="PackedScene" uid="uid://cth01bffjfeva" path="res://models/salas/salaoxigeno.blend" id="9_t1rx8"]
+[ext_resource type="PackedScene" uid="uid://dejjwv5ub4q1p" path="res://models/salas/salaprincipal.GLB.blend" id="11_8iemx"]
+[ext_resource type="PackedScene" uid="uid://cuotsflbh8o1v" path="res://models/salas/tunel.blend" id="12_8iemx"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wfyh"]
 albedo_color = Color(4.5242905e-06, 0.68602145, 0.36866468, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_pv2mu"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_olg7q"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_w7c3h"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -26,150 +37,178 @@ glow_enabled = true
 
 [node name="Level" type="Node3D" unique_id=1166880007]
 
-[node name="Scene" type="Node3D" parent="." unique_id=165854933]
+[node name="Stage" type="Node3D" parent="." unique_id=165854933]
 
-[node name="CSGBox3D" type="CSGBox3D" parent="Scene" unique_id=1588396605]
+[node name="mid2" parent="Stage" unique_id=589341790 instance=ExtResource("1_64w2a")]
+transform = Transform3D(3.4761198, 0, -3.3433878e-09, 0, 2.9719503, 0, -3.2715946e-09, 0, 3.4759254, -0.0005187988, 3.8882585, -54.05868)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Stage" unique_id=1588396605]
 transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 0, 2.56, 0)
 use_collision = true
 size = Vector3(4.5, 5.445, 4.5)
 
-[node name="CSGCombiner3D" type="CSGCombiner3D" parent="Scene" unique_id=897823455]
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="Stage" unique_id=897823455]
 use_collision = true
 
-[node name="MultiROOM" type="CSGBox3D" parent="Scene/CSGCombiner3D" unique_id=1410816190]
+[node name="MultiROOM" type="CSGBox3D" parent="Stage/CSGCombiner3D" unique_id=1410816190]
 transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 0, 2.56, -54)
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN1" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=1956967626]
-transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1, -1.2, 0, 0)
+[node name="GEN1" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM" unique_id=1956967626]
+transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, -1.2, 0, -0.039808273)
 visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN2" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=363530230]
+[node name="GEN2" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM" unique_id=363530230]
 transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, 1.2, 0, 0)
 visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN3" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=1878119422]
+[node name="GEN3" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM" unique_id=1878119422]
 transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, 0, 0, -1.2)
 visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="StaticBody3D" type="StaticBody3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=229429304]
+[node name="StaticBody3D" type="StaticBody3D" parent="Stage/CSGCombiner3D/MultiROOM" unique_id=229429304]
 transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, -0.8208779, 3.7181025, 0)
 
-[node name="Interact" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM/StaticBody3D" unique_id=1544905250]
+[node name="Interact" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM/StaticBody3D" unique_id=1544905250]
 transform = Transform3D(-9.368724e-09, 0, 0.2143314, 0, 2.0488226, 0, -0.20971653, 0, -9.167001e-09, 0, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
-script = ExtResource("1_mx8sn")
+script = ExtResource("1_ppgk2")
 
-[node name="StaticBody3D2" type="StaticBody3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=702642276]
+[node name="StaticBody3D2" type="StaticBody3D" parent="Stage/CSGCombiner3D/MultiROOM" unique_id=702642276]
 transform = Transform3D(1, 0, 0, 0, 1.0000005, 0, 0, 0, 1, 0, 3.7180014, -0.8388233)
 
-[node name="Interact" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM/StaticBody3D2" unique_id=1705505387]
+[node name="Interact" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM/StaticBody3D2" unique_id=1705505387]
 transform = Transform3D(-9.1670005e-09, 0, -0.21433139, 0, 2.0488224, 0, 0.20971653, 0, -9.368724e-09, 0, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
-script = ExtResource("2_ppgk2")
+script = ExtResource("2_8iemx")
 
-[node name="StaticBody3D3" type="StaticBody3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=422650631]
+[node name="StaticBody3D3" type="StaticBody3D" parent="Stage/CSGCombiner3D/MultiROOM" unique_id=422650631]
 transform = Transform3D(1, 0, 0, 0, 1.0000004, 0, 0, 0, 1, 0.825329, 3.7181025, 0)
 
-[node name="Interact" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM/StaticBody3D3" unique_id=1554735999]
+[node name="Interact" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM/StaticBody3D3" unique_id=1554735999]
 transform = Transform3D(0.20971653, 0, 0, 0, 2.048823, 0, 0, 0, 0.21433142, 0, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
-script = ExtResource("3_2r41h")
+script = ExtResource("3_64w2a")
 
-[node name="CSGBox3D6" type="CSGBox3D" parent="Scene" unique_id=2045893313]
+[node name="CSGBox3D6" type="CSGBox3D" parent="Stage" unique_id=2045893313]
 transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 18, 2.56, 0)
 use_collision = true
-size = Vector3(3, 5.445, 3)
+size = Vector3(6.805, 5.445, 6.875)
 
-[node name="CSGBox3D3" type="CSGBox3D" parent="Scene" unique_id=1803801410]
+[node name="CSGBox3D7" type="CSGBox3D" parent="Stage" unique_id=1912265642]
+transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 18, 13.661425, 0)
+use_collision = true
+size = Vector3(6.805, 5.445, 6.875)
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="Stage" unique_id=1803801410]
 transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, -54, 2.56, 0)
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="CSGBox3D4" type="CSGBox3D" parent="Scene" unique_id=1593608918]
+[node name="CSGBox3D4" type="CSGBox3D" parent="Stage" unique_id=1593608918]
 transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, -54, 2.56, 13)
 use_collision = true
 size = Vector3(3, 5.445, 3)
 
-[node name="CSGBox3D2" type="CSGBox3D" parent="Scene" unique_id=1472533647]
+[node name="CSGBox3D2" type="CSGBox3D" parent="Stage" unique_id=1472533647]
 transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, -30, 2.56, 0)
 use_collision = true
 size = Vector3(8, 5.445, 1)
 
-[node name="CSGBox3D5" type="CSGBox3D" parent="Scene" unique_id=152858104]
+[node name="CSGBox3D5" type="CSGBox3D" parent="Stage" unique_id=152858104]
 transform = Transform3D(-2.0394299e-07, 0, 4.76834, 0, 0.4880851, 0, -4.665672, 0, -2.0843076e-07, 0, 2.56, -30)
 use_collision = true
 size = Vector3(8, 5.445, 1)
 
-[node name="Hallway1" type="CSGBox3D" parent="Scene" unique_id=1590194650]
+[node name="Hallway1" type="CSGBox3D" parent="Stage" unique_id=1590194650]
 transform = Transform3D(-2.0394299e-07, 0, 4.76834, 0, 0.4880851, 0, -4.665672, 0, -2.0843076e-07, 118.06303, 2.56, -30)
 use_collision = true
 size = Vector3(8, 5.445, 1)
 
-[node name="GNS1" type="SoftBody3D" parent="Scene/Hallway1" unique_id=729720172]
+[node name="GNS1" type="SoftBody3D" parent="Stage/Hallway1" unique_id=729720172]
 transform = Transform3D(0.44181523, 0, -3.5527137e-15, 0, 0.4418159, 0, 3.5527137e-15, 0, 0.44181523, 4.001461, 3.0440035, 0)
 visible = false
 mesh = SubResource("BoxMesh_pv2mu")
 
-[node name="GEN2" type="CSGBox3D" parent="Scene/Hallway1" unique_id=546760576]
+[node name="GEN2" type="CSGBox3D" parent="Stage/Hallway1" unique_id=546760576]
 transform = Transform3D(1.2925182e-07, 0, 1.022005, 0, 1.0000006, 0, -0.97846866, 0, 1.330579e-07, -5.1302414, 0, 0.025295258)
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN1" type="CSGBox3D" parent="Scene/Hallway1/GEN2" unique_id=1840695191]
+[node name="GEN1" type="CSGBox3D" parent="Stage/Hallway1/GEN2" unique_id=1840695191]
 transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1, -1.2, 0, 0)
 visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN2" type="CSGBox3D" parent="Scene/Hallway1/GEN2" unique_id=575475271]
+[node name="GEN2" type="CSGBox3D" parent="Stage/Hallway1/GEN2" unique_id=575475271]
 transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, 1.2, 0, 0)
 visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN3" type="CSGBox3D" parent="Scene/Hallway1/GEN2" unique_id=1685641687]
+[node name="GEN3" type="CSGBox3D" parent="Stage/Hallway1/GEN2" unique_id=1685641687]
 transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, 0, 0, -1.2)
 visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="StaticBody3D" type="StaticBody3D" parent="Scene/Hallway1/GEN2" unique_id=1698237257]
+[node name="StaticBody3D" type="StaticBody3D" parent="Stage/Hallway1/GEN2" unique_id=1698237257]
 transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, -0.8208779, 3.7181025, 0)
 
-[node name="Interact" type="CSGBox3D" parent="Scene/Hallway1/GEN2/StaticBody3D" unique_id=2089675799]
+[node name="Interact" type="CSGBox3D" parent="Stage/Hallway1/GEN2/StaticBody3D" unique_id=2089675799]
 transform = Transform3D(-9.368724e-09, 0, 0.2143314, 0, 2.0488226, 0, -0.20971653, 0, -9.167001e-09, 0, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("1_mx8sn")
 
-[node name="StaticBody3D2" type="StaticBody3D" parent="Scene/Hallway1/GEN2" unique_id=648383047]
+[node name="StaticBody3D2" type="StaticBody3D" parent="Stage/Hallway1/GEN2" unique_id=648383047]
 transform = Transform3D(1, 0, 0, 0, 1.0000005, 0, 0, 0, 1, 0, 3.7180014, -0.8388233)
 
-[node name="Interact" type="CSGBox3D" parent="Scene/Hallway1/GEN2/StaticBody3D2" unique_id=822000020]
+[node name="Interact" type="CSGBox3D" parent="Stage/Hallway1/GEN2/StaticBody3D2" unique_id=822000020]
 transform = Transform3D(-9.1670005e-09, 0, -0.21433139, 0, 2.0488224, 0, 0.20971653, 0, -9.368724e-09, 0, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("2_ppgk2")
 
-[node name="StaticBody3D3" type="StaticBody3D" parent="Scene/Hallway1/GEN2" unique_id=1015708569]
+[node name="StaticBody3D3" type="StaticBody3D" parent="Stage/Hallway1/GEN2" unique_id=1015708569]
 transform = Transform3D(1, 0, 0, 0, 1.0000004, 0, 0, 0, 1, 0.825329, 3.7181025, 0)
 
-[node name="Interact" type="CSGBox3D" parent="Scene/Hallway1/GEN2/StaticBody3D3" unique_id=591131449]
+[node name="Interact" type="CSGBox3D" parent="Stage/Hallway1/GEN2/StaticBody3D3" unique_id=591131449]
 transform = Transform3D(0.20971653, 0, 0, 0, 2.048823, 0, 0, 0, 0.21433142, 0, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("3_2r41h")
+
+[node name="tunel3" parent="Stage/Hallway1" unique_id=1996993267 instance=ExtResource("12_8iemx")]
+transform = Transform3D(-1.15235295e-07, 0, -0.70943695, 0, 5.0401053, 0, 0.5159028, 0, -1.5171389e-07, 8.394142, 3.367259, 0.03460312)
+
+[node name="mid" parent="Stage/Hallway1" unique_id=703584519 instance=ExtResource("1_64w2a")]
+transform = Transform3D(-3.18656e-08, 0, -0.745, 0, 6.089005, 0, 0.729, 0, -3.2564984e-08, -5.1297884, 2.7213707, 0.034772873)
+
+[node name="Soplete" type="RigidBody3D" parent="Stage" unique_id=1366996528]
+transform = Transform3D(1.925, 0, 0, 0, 1.925, 0, 0, 0, 1.925, -0.5665126, 4.1644726, -7.538406)
+script = ExtResource("7_8c41q")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stage/Soplete" unique_id=164998558]
+transform = Transform3D(0.191567, 0, 0, 0, 0.7016853, 0, 0, 0, 1, 0, 0.5068402, 0)
+shape = SubResource("BoxShape3D_olg7q")
+
+[node name="pistola" parent="Stage/Soplete" unique_id=1963992848 instance=ExtResource("1_b121j")]
+transform = Transform3D(-0.05556023, 0, -4.8572297e-09, 0, 0.05556023, 0, 4.8572297e-09, 0, -0.05556023, 0.024701238, 0.45097017, 0.009744167)
+
+[node name="salaoxigeno" parent="Stage" unique_id=1543454191 instance=ExtResource("9_t1rx8")]
+transform = Transform3D(-0.035, 0, 3.059797e-09, 0, 0.035, 0, -3.059797e-09, 0, -0.035, -55.61052, 3.9020357, 12.292677)
 
 [node name="Env" type="Node3D" parent="." unique_id=156471619]
 
@@ -199,3 +238,18 @@ target_position = Vector3(0, 0, -5)
 
 [node name="Marker3D" type="Marker3D" parent="player/head" unique_id=1930522536]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.38015175, -1.5793027)
+
+[node name="salaprincipal_GLB" parent="." unique_id=108143020 instance=ExtResource("11_8iemx")]
+transform = Transform3D(-9.244959e-08, 0, -2.115, 0, 2.115, 0, 2.115, 0, -9.244959e-08, 19.809639, 4.035, -0.122)
+
+[node name="tunel" parent="." unique_id=1264126836 instance=ExtResource("12_8iemx")]
+transform = Transform3D(-1.0753001e-07, 0, -3.31, 0, 2.46, 0, 2.46, 0, -1.4468469e-07, 9.965891, 4.2035084, 0.16368389)
+
+[node name="tunel2" parent="." unique_id=1500954895 instance=ExtResource("12_8iemx")]
+transform = Transform3D(-2.46, 0, 2.8936938e-07, 0, 2.46, 0, -2.1506003e-07, 0, -3.31, 0.019973755, 4.2035084, 9.1444435)
+
+[node name="CSGBox3D7" type="CSGBox3D" parent="." unique_id=1819558124]
+transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 18, 11.761677, 0)
+visible = false
+use_collision = true
+size = Vector3(5.865, 5.445, 4.57)

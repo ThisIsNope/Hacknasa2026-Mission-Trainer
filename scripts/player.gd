@@ -4,8 +4,8 @@ extends CharacterBody3D
 @onready var ray_cast_3d: RayCast3D = $head/RayCast3D
 @onready var hold_point: Marker3D = $head/Marker3D
 
-const WALK_SPEED = 5.0
-const SPRINT_SPEED = 8.0
+const WALK_SPEED = 8
+const SPRINT_SPEED = 15
 const CROUCH_SPEED = 3.0
 const JUMP_VELOCITY = 7.0
 const MOUSE_SENS = 0.1
@@ -25,7 +25,7 @@ var oxigen_cons = 0
 var coyote_timer: float = 0.0
 var jump_buffer_timer: float = 0.0
 
-var held_object: RigidBody3D = null
+var held_object: Grabbable = null
 var grab_basis := Basis.IDENTITY
 var is_resetting := false
 var hold_rotation_offset := Vector3.ZERO
@@ -46,9 +46,8 @@ func _input(event: InputEvent) -> void:
 		head.rotate_x(deg_to_rad(-event.relative.y * MOUSE_SENS))
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-79), deg_to_rad(79))
 
-	# Clic izquierdo: usar lo que tengas en la mano (por ejemplo, el soplete)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if held_object and held_object.has_method("usar"):
+		if held_object and held_object.has_method("usar") and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 			held_object.usar(event.pressed, self)
 
 
@@ -99,16 +98,24 @@ func _physics_process(delta: float) -> void:
 			drop_object()
 		elif ray_cast_3d.is_colliding():
 			var obj = ray_cast_3d.get_collider()
-			if obj is RigidBody3D:
-				pick_object(obj)
+			var target: Node = obj
+			while target and not (target is Grabbable) and not target.has_method("interact"):
+				target = target.get_parent()
+			if target is Grabbable:
+				pick_object(target)
+			elif target:
+				target.interact(self)
 
 	if held_object:
 		update_held_object(delta)
 
+		if held_object and Input.is_action_just_pressed("use") and held_object.has_method("use"):
+			held_object.use(self)
+
 	move_and_slide()
 
 
-func pick_object(obj: RigidBody3D) -> void:
+func pick_object(obj: Grabbable) -> void:
 	held_object = obj
 	held_object.gravity_scale = 0.0
 	held_object.lock_rotation = true
@@ -121,13 +128,17 @@ func pick_object(obj: RigidBody3D) -> void:
 		deg_to_rad(hold_rotation_offset.y),
 		deg_to_rad(hold_rotation_offset.z)
 	))
+	if held_object.has_method("on_grab"):
+		held_object.on_grab(self)
 
 
 func drop_object() -> void:
 	if held_object == null:
 		return
 	if held_object.has_method("usar"):
-		held_object.usar(false)   # apaga la herramienta al soltarla
+		held_object.usar(false, self)
+	if held_object.has_method("on_drop"):
+		held_object.on_drop(self)
 	held_object.freeze = false
 	held_object.gravity_scale = 1.0
 	held_object.lock_rotation = false
@@ -151,7 +162,7 @@ func get_hold_target() -> Vector3:
 
 	var query = PhysicsShapeQueryParameters3D.new()
 	query.shape = shape_node.shape
-	query.transform = Transform3D(held_object.global_basis, from)
+	query.transform = Transform3D(held_object.global_basis.orthonormalized(), from)
 	query.motion = to - from
 	query.exclude = [get_rid(), held_object.get_rid()]
 
@@ -175,7 +186,8 @@ func update_held_object(delta: float) -> void:
 
 	var target_quat = (head.global_basis * grab_basis).get_rotation_quaternion()
 	var current_quat = held_object.global_basis.get_rotation_quaternion()
-	held_object.global_basis = Basis(current_quat.slerp(target_quat, ROTATION_FOLLOW * delta))
+	var obj_scale = held_object.global_basis.get_scale()
+	held_object.global_basis = Basis(current_quat.slerp(target_quat, ROTATION_FOLLOW * delta)).scaled(obj_scale)
 
 
 func reset_held_object() -> void:
@@ -191,6 +203,7 @@ func reset_held_object() -> void:
 
 	var start_pos = obj.global_position
 	var start_quat = obj.global_basis.get_rotation_quaternion()
+	var obj_scale = obj.global_basis.get_scale()
 
 	var tween = create_tween()
 	tween.set_trans(Tween.TRANS_CUBIC)
@@ -200,7 +213,7 @@ func reset_held_object() -> void:
 			return
 		var target_quat = (head.global_basis * grab_basis).get_rotation_quaternion()
 		obj.global_position = start_pos.lerp(get_hold_target(), t)
-		obj.global_basis = Basis(start_quat.slerp(target_quat, t))
+		obj.global_basis = Basis(start_quat.slerp(target_quat, t)).scaled(obj_scale)
 	, 0.0, 1.0, RESET_TIME)
 
 	await tween.finished
