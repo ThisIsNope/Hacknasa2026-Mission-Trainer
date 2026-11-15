@@ -18,6 +18,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 Global="*uid://btvlwqc7sid84"
+ConexionMCP="*res://scripts/conexion_mcp.gd"
+EventosNasa="*res://scripts/eventos_nasa.gd"
 
 [display]
 
@@ -74,3 +76,4 @@ use={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+textures/vram_compression/import_etc2_astc=true

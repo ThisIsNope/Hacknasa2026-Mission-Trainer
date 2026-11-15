@@ -26,6 +26,8 @@ Configuración -> Desarrollador -> Editar configuración, y agrega:
 - recargar_combustible(porcentaje)
 - leer_eventos()   -> soldado, sin_combustible, oxigeno_bajo, oxigeno_agotado
 
+- lanzar_evento_nasa(tipo, intensidad, fecha, mensaje, dificultad, severidad)
+- cancelar_evento_nasa()
 - conectar_sala(codigo)  -> conecta con un juego abierto en otro dispositivo
 - estado_conexion()
 
@@ -50,3 +52,25 @@ Opcional: "env": {"MISSION_SALA": "nasa123"} conecta a esa sala al iniciar.
 
 El plan gratuito de Render se duerme tras 15 minutos sin uso; la primera
 conexión después de eso puede tardar hasta un minuto.
+
+## Eventos de la NASA (scripts/eventos_nasa.gd, autoload EventosNasa)
+Claude toma un evento real de la tabla `eventos` de Supabase y lo lanza con
+lanzar_evento_nasa. Los problemas y dificultades son copia de las tablas
+`problemas`, `tipo_evento_problema` y `dificultades`.
+
+| Tipo | Mecánica |
+|------|----------|
+| FLR  | Cuenta regresiva de 10 s y estallido de radiación: hay que protegerse. |
+| CME  | Sacudida + ventilas/paneles dañados que hay que soldar antes del tiempo límite. |
+| GST  | Fallas eléctricas (HUD y luces parpadean, soplete más débil) + reparaciones. |
+| SEP  | Radiación sostenida: el oxígeno baja más rápido si no te proteges. |
+| IPS  | Sacudida fuerte que empuja los objetos sueltos. |
+
+La severidad (1 a 5) sale de la intensidad: clase de la fulguración (C/M/X),
+índice Kp o velocidad de la CME. Un evento quita como máximo 50 % de oxígeno.
+
+Para el nivel (opcional, desde el editor):
+- Area3D en el grupo `refugio` = sala blindada. Si no hay ninguna, agacharse protege.
+- Objeto en el grupo `escudo` = escudo portátil (protege mientras lo sostienes).
+- Marker3D en el grupo `punto_dano` = dónde aparecen las reparaciones. Si no hay,
+  aparecen en la pared hacia la que mira el jugador.
