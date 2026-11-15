@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://bm6kuciop7f1i"]
+
+[ext_resource type="PackedScene" uid="uid://dejjwv5ub4q1p" path="res://models/salas/salaprincipal.GLB.blend" id="1_2j01p"]
+[ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="2_vdwn6"]
+[ext_resource type="PackedScene" uid="uid://cuotsflbh8o1v" path="res://models/salas/tunel.blend" id="3_vdwn6"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_n5pgb"]
+
+[node name="Node3D" type="Node3D" unique_id=750890047]
+
+[node name="salaprincipal_GLB" parent="." unique_id=544784397 instance=ExtResource("1_2j01p")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.44821948, -0.6226095, 0.1703825)
+visible = false
+
+[node name="player" type="CharacterBody3D" parent="." unique_id=78773774]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7732, 0)
+script = ExtResource("2_vdwn6")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="player" unique_id=1346581158]
+transform = Transform3D(0.87914574, 0, -0.47655302, 0, 1, 0, 0.47655302, 0, 0.87914574, 2.2986085, -1.2668021, 3.031878)
+shape = SubResource("CapsuleShape3D_n5pgb")
+
+[node name="head" type="Node3D" parent="player" unique_id=1482212194]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.283391, 0)
+
+[node name="Camera3D" type="Camera3D" parent="player/head" unique_id=432733417]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.021245122, 0)
+
+[node name="RayCast3D" type="RayCast3D" parent="player/head" unique_id=306878748]
+target_position = Vector3(0, 0, -5)
+
+[node name="Marker3D" type="Marker3D" parent="player/head" unique_id=733079057]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.38015175, -1.5793027)
+
+[node name="tunel" parent="." unique_id=1763901587 instance=ExtResource("3_vdwn6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6720226, 0, 0.661932)
