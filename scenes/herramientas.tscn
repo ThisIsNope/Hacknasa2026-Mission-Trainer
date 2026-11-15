@@ -1,3 +1,18 @@
 [gd_scene format=3 uid="uid://bwc67xqb786ld"]
 
+[ext_resource type="PackedScene" uid="uid://bau225s0kgxyj" path="res://assets/rachet1.blend" id="1_11m7s"]
+[ext_resource type="PackedScene" uid="uid://ytcwwpfs2bpl" path="res://assets/wrench.blend" id="2_wfegg"]
+[ext_resource type="PackedScene" uid="uid://cth01bffjfeva" path="res://models/salas/salaoxigeno.blend" id="3_hhjym"]
+
 [node name="herramientas" type="Node3D" unique_id=1990629385]
+
+[node name="rachet1" parent="." unique_id=1830601814 instance=ExtResource("1_11m7s")]
+transform = Transform3D(0.042331737, 0, 0, 0, 0.042331737, 0, 0, 0, 0.042331737, 1.9591064, 1.8967876, 4.872753)
+visible = false
+
+[node name="wrench2" parent="." unique_id=1207738539 instance=ExtResource("2_wfegg")]
+transform = Transform3D(0.0184832, 0, 0, 0, 0.032360524, 0, 0, 0, 0.016293906, -0.519608, -0.5698522, 0.5051327)
+visible = false
+
+[node name="salaoxigeno" parent="." unique_id=1936359134 instance=ExtResource("3_hhjym")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.024120092, 0, 0.4551177)
