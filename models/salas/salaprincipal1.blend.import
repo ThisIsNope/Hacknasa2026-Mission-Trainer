@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://c00v5dnn3adka"
-path="res://.godot/imported/salaprincipal.blend-098f6c540ff49545070f130cd342f5e5.scn"
+path="res://.godot/imported/salaprincipal1.blend-7e85c664d32086b1fd7d989dc493ab8b.scn"
 
 [deps]
 
-source_file="res://models/salas/salaprincipal.blend"
-dest_files=["res://.godot/imported/salaprincipal.blend-098f6c540ff49545070f130cd342f5e5.scn"]
+source_file="res://models/salas/salaprincipal1.blend"
+dest_files=["res://.godot/imported/salaprincipal1.blend-7e85c664d32086b1fd7d989dc493ab8b.scn"]
 
 [params]
 

@@ -7,8 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://c014gxys7lxt0" path="res://models/space.blend" id="4_tefeu"]
 [ext_resource type="PackedScene" uid="uid://c3ofpynn3p45y" path="res://models/pistola.blend" id="5_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://2jqrif8kd4mn" path="res://scenes/hud.tscn" id="6_tefeu"]
-[ext_resource type="Script" path="res://scripts/soplete.gd" id="7_soplete"]
-[ext_resource type="Script" path="res://scripts/soldable.gd" id="8_soldable"]
+[ext_resource type="Script" uid="uid://b8v0vdp0q8oie" path="res://scripts/soplete.gd" id="7_soplete"]
+[ext_resource type="Script" uid="uid://bld0ratuu2rcg" path="res://scripts/soldable.gd" id="8_soldable"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_o5qli"]
 panorama = ExtResource("1_o5qli")
@@ -31,8 +31,6 @@ uv1_triplanar = true
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_426oi"]
 albedo_texture = ExtResource("3_jyhfs")
 uv1_triplanar = true
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_o6xl0"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pv2mu"]
 
@@ -94,10 +92,6 @@ size = Vector3(6.16, 10.635, 5.4)
 [node name="Soplete" type="RigidBody3D" parent="stage" unique_id=550631964]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5665126, 0.16260207, -7.538406)
 script = ExtResource("7_soplete")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="stage/Soplete" unique_id=1019386135]
-transform = Transform3D(0.191567, 0, 0, 0, 0.7016853, 0, 0, 0, 1, 0, 0.5068402, 0)
-shape = SubResource("BoxShape3D_o6xl0")
 
 [node name="pistola" parent="stage/Soplete" unique_id=1963992848 instance=ExtResource("5_o6xl0")]
 transform = Transform3D(-0.05556023, 0, -4.8572297e-09, 0, 0.05556023, 0, 4.8572297e-09, 0, -0.05556023, 0.024701238, 0.45097017, 0.009744167)
