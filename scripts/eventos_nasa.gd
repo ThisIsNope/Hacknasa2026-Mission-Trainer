@@ -17,8 +17,10 @@ extends Node
 ##   - Sostener un objeto del grupo "escudo" (mecánica "Escudo").
 ##   - Estar dentro de un Area3D del grupo "refugio" (la sala blindada).
 ##   - Si la escena no tiene ningún "refugio", agacharse (tecla de agacharse) cuenta como cubrirse.
-## Las reparaciones aparecen en los Marker3D del grupo "punto_dano"; si no hay, en la
-## pared más cercana a la que mira el jugador.
+## Las reparaciones aparecen en los Marker3D del grupo "punto_dano". Si no hay, se buscan
+## lugares válidos alrededor del jugador (con suelo, preferentemente dentro de un cuarto,
+## pegadas a una pared o al suelo; ver _buscar_lugar). Si una escena tiene Area3D en el
+## grupo "zona_reparacion", solo aparecen dentro de esas zonas.
 
 signal evento_iniciado(resumen: Dictionary)
 signal evento_terminado(resumen: Dictionary)
@@ -26,6 +28,10 @@ signal evento_terminado(resumen: Dictionary)
 const SOLDABLE := preload("res://scripts/soldable.gd")
 const OXIGENO_MAX := 125.0          # mismo valor inicial que Global.oxigen
 const AVISO_FLR := 10.0             # segundos de aviso antes del estallido de una fulguración
+const ALCANCE_REPARACION := 2.0     # m máximos desde el jugador a una reparación (el soplete llega a 2.5)
+const RADIO_MIN := 3.0              # m: distancia mínima del jugador a la que aparecen reparaciones
+const RADIO_MAX := 12.0             # m: distancia máxima
+const SEPARACION_MIN := 1.5         # m entre reparaciones
 const DANO_MAX_POR_EVENTO := 50.0   # % de oxígeno máximo que puede quitar un solo evento
 
 const NOMBRES := {
@@ -294,17 +300,23 @@ func _crear_reparaciones(tipo: String, cantidad: int) -> void:
 	cantidad = clampi(cantidad, 1, 6)
 	var marcadores := get_tree().get_nodes_in_group("punto_dano")
 	marcadores.shuffle()
+	var usados: Array[Vector3] = []
 	for i in cantidad:
 		var problema: Dictionary = PROBLEMAS[ids[i % ids.size()]]
 		var nombre: String = problema["nombre"]
 		if cantidad > ids.size():
 			nombre += " %d" % (i + 1)
+		# Se busca el lugar antes de crear la pieza, para que no estorbe a los rayos
+		var lugar := {} if i < marcadores.size() else _buscar_lugar(usados)
 		var rep := _crear_soldable(nombre, problema)
 		if rep == null:
 			return
 		if i < marcadores.size():
 			var m: Node3D = marcadores[i]
 			rep.global_transform = m.global_transform
+		elif not lugar.is_empty():
+			rep.global_transform = lugar["transform"]
+			usados.append(lugar["pie"])
 		else:
 			_colocar_en_pared(rep, i, cantidad)
 		_reparaciones.append(rep)
@@ -318,7 +330,7 @@ func _crear_soldable(nombre: String, problema: Dictionary) -> Node3D:
 	var caja := CSGBox3D.new()
 	caja.set_script(SOLDABLE)
 	caja.name = nombre.validate_node_name()
-	caja.size = Vector3(1.0, 0.7, 0.08)
+	caja.size = Vector3(0.6, 0.5, 0.08)
 	caja.use_collision = true
 	caja.set("nombre", nombre)
 	caja.set_meta("dano_base", problema["dano_base"])
@@ -334,28 +346,140 @@ func _crear_soldable(nombre: String, problema: Dictionary) -> Node3D:
 	return caja
 
 
-## Pone la reparación en la pared hacia la que mira el jugador (repartidas en abanico).
+## Busca al azar un lugar válido para una reparación, entre RADIO_MIN y RADIO_MAX del jugador:
+##  - tiene suelo debajo (se puede llegar caminando) y no está dentro de una estructura;
+##  - si hay zonas en el grupo "zona_reparacion" (Area3D), debe estar dentro de una;
+##  - se prefieren los interiores (techo y paredes alrededor);
+##  - la pieza se pega a la pared más cercana a la altura del pecho, o al suelo si no hay pared;
+##  - queda a más de SEPARACION_MIN de las otras reparaciones.
+## Devuelve {"transform": Transform3D, "pie": Vector3, "interior": bool} o {} si no encontró.
+func _buscar_lugar(usados: Array[Vector3]) -> Dictionary:
+	var jugador := _jugador()
+	if jugador == null:
+		return {}
+	var espacio := jugador.get_world_3d().direct_space_state
+	var excluir := _cuerpos_dinamicos(jugador)
+	var zonas := get_tree().get_nodes_in_group("zona_reparacion")
+	var pies := jugador.global_position
+	var mejor := {}
+	for intento in 60:
+		var angulo := randf() * TAU
+		var distancia := randf_range(RADIO_MIN, RADIO_MAX)
+		var pecho := pies + Vector3(cos(angulo), 0, sin(angulo)) * distancia + Vector3.UP * 1.2
+		# Libre (no dentro de una pared o caja)
+		if _choca_punto(espacio, pecho, excluir) or _choca_punto(espacio, pecho + Vector3.DOWN * 0.7, excluir):
+			continue
+		# Suelo debajo, a menos de 3 m
+		var suelo := _rayo(espacio, pecho, pecho + Vector3.DOWN * 3.0, excluir)
+		if suelo.is_empty() or suelo.normal.y < 0.7:
+			continue
+		var pie: Vector3 = suelo.position
+		pecho = pie + Vector3.UP * 1.2
+		if not zonas.is_empty() and not _dentro_de_zona(espacio, pecho, zonas):
+			continue
+		var lejos := true
+		for u in usados:
+			if u.distance_to(pie) < SEPARACION_MIN:
+				lejos = false
+				break
+		if not lejos:
+			continue
+		# ¿Interior? techo arriba y paredes en al menos 3 de 4 direcciones
+		var techo := _rayo(espacio, pecho, pecho + Vector3.UP * 8.0, excluir)
+		var paredes := 0
+		var pared_cercana := {}
+		for k in 8:
+			var dir := Vector3.FORWARD.rotated(Vector3.UP, k * TAU / 8.0)
+			var hit := _rayo(espacio, pecho, pecho + dir * 10.0, excluir)
+			if hit.is_empty() or absf(hit.normal.y) > 0.7:
+				continue
+			if k % 2 == 0:
+				paredes += 1
+			var d := pecho.distance_to(hit.position)
+			if d <= 1.5 and (pared_cercana.is_empty() or d < pared_cercana["d"]):
+				pared_cercana = {"d": d, "pos": hit.position, "normal": hit.normal}
+		var interior := not techo.is_empty() and paredes >= 3
+		var t: Transform3D
+		if not pared_cercana.is_empty():
+			var n: Vector3 = pared_cercana["normal"]
+			t = Transform3D(Basis.looking_at(-n, Vector3.UP), pared_cercana["pos"] + n * 0.06)
+		else:   # en el suelo, acostada
+			t = Transform3D(Basis.looking_at(Vector3.DOWN, Vector3.FORWARD), pie + Vector3.UP * 0.06)
+		var lugar := {"transform": t, "pie": pie, "interior": interior}
+		if interior and not pared_cercana.is_empty():
+			return lugar          # el mejor caso: en la pared de un cuarto
+		if mejor.is_empty() or (interior and not mejor["interior"]):
+			mejor = lugar
+	return mejor
+
+
+func _rayo(espacio: PhysicsDirectSpaceState3D, desde: Vector3, hasta: Vector3, excluir: Array[RID]) -> Dictionary:
+	var q := PhysicsRayQueryParameters3D.create(desde, hasta)
+	q.exclude = excluir
+	return espacio.intersect_ray(q)
+
+
+func _choca_punto(espacio: PhysicsDirectSpaceState3D, punto: Vector3, excluir: Array[RID]) -> bool:
+	var q := PhysicsPointQueryParameters3D.new()
+	q.position = punto
+	q.exclude = excluir
+	return not espacio.intersect_point(q, 1).is_empty()
+
+
+func _dentro_de_zona(espacio: PhysicsDirectSpaceState3D, punto: Vector3, zonas: Array) -> bool:
+	var q := PhysicsPointQueryParameters3D.new()
+	q.position = punto
+	q.collide_with_areas = true
+	q.collide_with_bodies = false
+	for r in espacio.intersect_point(q, 16):
+		if r.collider in zonas:
+			return true
+	return false
+
+
+## El jugador, los objetos sueltos y las reparaciones no cuentan como suelo ni pared.
+func _cuerpos_dinamicos(jugador: Node3D) -> Array[RID]:
+	var rids: Array[RID] = [jugador.get_rid()]
+	var escena := get_tree().current_scene
+	if escena:
+		for n in escena.find_children("*", "RigidBody3D", true, false):
+			rids.append((n as RigidBody3D).get_rid())
+	return rids
+
+
+## Plan B: pone la reparación al alcance del soplete (que llega a 2.5 m): en la pared que tengas
+## enfrente si está a menos de ALCANCE_REPARACION, o flotando frente a ti si no.
+## Varias reparaciones se reparten en abanico a la altura del pecho.
 func _colocar_en_pared(rep: Node3D, i: int, total: int) -> void:
 	var jugador := _jugador()
 	var origen := Vector3(0, 1, 0)
 	var adelante := Vector3.FORWARD
+	var excluir: Array[RID] = []
 	if jugador:
-		origen = jugador.global_position + Vector3.UP * 0.8
+		var cabeza := jugador.get_node_or_null("head") as Node3D
+		origen = cabeza.global_position if cabeza else jugador.global_position + Vector3.UP
 		adelante = -jugador.global_basis.z
-	var abanico := 0.0 if total <= 1 else lerpf(-60.0, 60.0, float(i) / float(total - 1))
-	var dir := adelante.rotated(Vector3.UP, deg_to_rad(abanico + randf_range(-10.0, 10.0)))
-	dir.y = 0.0
-	dir = dir.normalized()
+		excluir.append(jugador.get_rid())
+		var en_mano = jugador.get("held_object")
+		if en_mano is CollisionObject3D:
+			excluir.append((en_mano as CollisionObject3D).get_rid())
+	origen += Vector3.DOWN * 0.3          # a la altura del pecho
+	adelante.y = 0.0
+	if adelante.length() < 0.01:
+		adelante = Vector3.FORWARD
+	# ~28 grados entre reparaciones (no se enciman) y alturas alternadas
+	var mitad := minf(14.0 * (total - 1), 70.0)
+	var abanico := 0.0 if total <= 1 else lerpf(-mitad, mitad, float(i) / float(total - 1))
+	origen += Vector3.UP * (0.2 if i % 2 == 1 else -0.1)
+	var dir := adelante.normalized().rotated(Vector3.UP, deg_to_rad(abanico))
 
-	var destino := origen + dir * 6.0
-	var query := PhysicsRayQueryParameters3D.create(origen, destino)
-	if jugador:
-		query.exclude = [jugador.get_rid()]
+	var query := PhysicsRayQueryParameters3D.create(origen, origen + dir * ALCANCE_REPARACION)
+	query.exclude = excluir
 	var hit := rep.get_world_3d().direct_space_state.intersect_ray(query)
 
-	var pos := origen + dir * 3.0
+	var pos := origen + dir * 1.6           # sin pared cerca: flota frente al jugador
 	var normal := -dir
-	if not hit.is_empty() and hit.collider != rep:
+	if not hit.is_empty() and hit.collider != rep and absf(hit.normal.y) < 0.7:
 		normal = hit.normal
 		pos = hit.position + normal * 0.06
 	var arriba := Vector3.UP if absf(normal.dot(Vector3.UP)) < 0.9 else Vector3.FORWARD

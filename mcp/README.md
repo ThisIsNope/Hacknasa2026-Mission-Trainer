@@ -72,5 +72,10 @@ La severidad (1 a 5) sale de la intensidad: clase de la fulguración (C/M/X),
 Para el nivel (opcional, desde el editor):
 - Area3D en el grupo `refugio` = sala blindada. Si no hay ninguna, agacharse protege.
 - Objeto en el grupo `escudo` = escudo portátil (protege mientras lo sostienes).
-- Marker3D en el grupo `punto_dano` = dónde aparecen las reparaciones. Si no hay,
-  aparecen en la pared hacia la que mira el jugador.
+- Marker3D en el grupo `punto_dano` = lugares fijos para las reparaciones.
+- Si no hay marcadores, se buscan lugares al azar entre 3 y 12 m del jugador que
+  tengan suelo y no estén dentro de una estructura; se prefieren los cuartos (techo y
+  paredes) y la pieza se pega a la pared o al suelo. Si no encuentra ninguno, aparece
+  frente al jugador.
+- Area3D en el grupo `zona_reparacion` = si existe alguna, las reparaciones solo
+  aparecen dentro de esas zonas (útil para evitar cuartos cerrados sin entrada).
