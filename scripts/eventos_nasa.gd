@@ -27,7 +27,8 @@ signal evento_terminado(resumen: Dictionary)
 
 const SOLDABLE := preload("res://scripts/soldable.gd")
 const OXIGENO_MAX := 125.0          # mismo valor inicial que Global.oxigen
-const AVISO_FLR := 10.0             # segundos de aviso antes del estallido de una fulguración
+const AVISO_FLR := 10.0             # segundos de aviso antes del estallido (para agacharse)
+const AVISO_FLR_REFUGIO := 25.0     # si el nivel tiene sala blindada, hay que llegar hasta ella
 const ALCANCE_REPARACION := 2.0     # m máximos desde el jugador a una reparación (el soplete llega a 2.5)
 const RADIO_MIN := 3.0              # m: distancia mínima del jugador a la que aparecen reparaciones
 const RADIO_MAX := 12.0             # m: distancia máxima
@@ -123,8 +124,9 @@ func lanzar(datos: Dictionary) -> Dictionary:
 
 	match tipo:
 		"FLR":
-			_tiempo = AVISO_FLR + 3.0
-			_aviso = AVISO_FLR
+			var aviso := AVISO_FLR_REFUGIO if _hay_refugio() else AVISO_FLR
+			_tiempo = aviso + 3.0
+			_aviso = aviso
 			_rad_estallido = PROBLEMAS[3]["dano_base"] * _mult
 			activo["problemas"].append(PROBLEMAS[3]["nombre"])
 		"SEP":
@@ -246,7 +248,7 @@ func _process(delta: float) -> void:
 	if _aviso > 0.0:
 		_aviso -= delta
 		var seg := int(ceil(_aviso))
-		if seg != _ultimo_aviso and seg <= 7 and seg > 0:
+		if seg != _ultimo_aviso and seg > 0 and (seg <= 7 or seg % 5 == 0):
 			_ultimo_aviso = seg
 			_hud("¡RADIACIÓN EN %d s! %s" % [seg, _como_protegerse()], COLOR_ALERTA, 1.2)
 		if _aviso <= 0.0:
@@ -640,9 +642,28 @@ func _protegido() -> bool:
 
 
 func _como_protegerse() -> String:
-	if get_tree().get_nodes_in_group("refugio").is_empty():
+	if not _hay_refugio():
 		return "¡Agáchate para cubrirte!"
-	return "¡Ve a la sala blindada!"
+	return "¡Ve a la sala de oxígeno!"
+
+
+func _hay_refugio() -> bool:
+	return not get_tree().get_nodes_in_group("refugio").is_empty()
+
+
+# ================================================================ pista al empezar
+
+func _ready() -> void:
+	get_tree().create_timer(3.0).timeout.connect(_pista_inicio)
+
+
+## Si a los pocos segundos el jugador no trae el soplete, le dice qué hacer.
+func _pista_inicio() -> void:
+	var sop := get_tree().get_first_node_in_group("soplete")
+	var jugador := _jugador()
+	if sop == null or jugador == null or jugador.get("held_object") == sop:
+		return
+	_hud("Toma el soplete con E (frente a ti)", COLOR_AVISO, 5.0)
 
 
 func _danar(pct: float) -> void:

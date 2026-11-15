@@ -21,6 +21,7 @@ func interact(_player: Node3D) -> void:
 
 	var nueva_caja = hallway_1.duplicate()
 	hallway_1.get_parent().add_child(nueva_caja)
+	nueva_caja.visible = true   # la plantilla está oculta; la copia se ve
 
 	var gns_1: Node3D = nueva_caja.get_node("GNS1")
 	gns_1.position = Vector3(nueva_caja.size.x / 2.0, 0, 0)
