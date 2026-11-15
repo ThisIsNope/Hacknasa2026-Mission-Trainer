@@ -24,6 +24,7 @@ var _espera := 1.0                # segundos entre reintentos (crece hasta 10)
 var _reintento := 0.0
 var _aviso_oxigeno_bajo := false
 var _aviso_oxigeno_agotado := false
+var _ranking_panel: CanvasLayer   # solo existe si el juego está en una sala
 
 
 func _ready() -> void:
@@ -37,6 +38,8 @@ func _ready() -> void:
 			set_process(false)
 			return
 	get_tree().node_added.connect(_on_nodo_agregado)
+	if not _sala.is_empty():
+		_crear_panel_ranking()
 	_conectar_eventos_nasa.call_deferred()   # EventosNasa se carga después de este autoload
 	_conectar()
 
@@ -98,6 +101,11 @@ func _process(delta: float) -> void:
 
 func _recibir(texto: String) -> void:
 	var datos = JSON.parse_string(texto)
+	# El relay manda el ranking (sin "id") al terminar cada evento de la NASA
+	if datos is Dictionary and datos.get("tipo") == "ranking":
+		if _ranking_panel:
+			_ranking_panel.actualizar(datos)
+		return
 	if not (datos is Dictionary) or not datos.has("id"):
 		return
 	var args: Dictionary = datos.get("args", {}) if datos.get("args") is Dictionary else {}
@@ -188,6 +196,8 @@ func _estado() -> Dictionary:
 	if jugador:
 		var p: Vector3 = jugador.global_position
 		var en_mano = jugador.get("held_object")
+		if not is_instance_valid(en_mano):
+			en_mano = jugador.get("herramienta_activa")   # herramienta del inventario (soplete)
 		estado["jugador"] = {
 			"posicion": [snappedf(p.x, 0.01), snappedf(p.y, 0.01), snappedf(p.z, 0.01)],
 			"objeto_en_mano": str(en_mano.name) if is_instance_valid(en_mano) else null,
@@ -197,6 +207,15 @@ func _estado() -> Dictionary:
 	if eventos and not eventos.activo.is_empty():
 		estado["evento_nasa"] = eventos.resumen_actual()
 	return estado
+
+
+# ---------------------------------------------------------------- ranking
+
+func _crear_panel_ranking() -> void:
+	_ranking_panel = load("res://scripts/ranking_panel.gd").new()
+	_ranking_panel.name = "RankingPanel"
+	add_child(_ranking_panel)
+	_ranking_panel.pedir_ranking.connect(func(): _enviar({"tipo": "pedir_ranking"}))
 
 
 # ---------------------------------------------------------------- eventos

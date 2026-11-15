@@ -634,14 +634,17 @@ func _protegido() -> bool:
 	var jugador := _jugador()
 	if jugador == null:
 		return false
-	var en_mano = jugador.get("held_object")
-	if en_mano is Node and is_instance_valid(en_mano) and en_mano.is_in_group("escudo"):
-		return true
+	for en_mano in [jugador.get("held_object"), jugador.get("herramienta_activa")]:
+		if en_mano is Node and is_instance_valid(en_mano) and en_mano.is_in_group("escudo"):
+			return true
 	var refugios := get_tree().get_nodes_in_group("refugio")
 	for r in refugios:
 		if r is Area3D and r.overlaps_body(jugador):
 			return true
 	if refugios.is_empty():
+		# El jugador nuevo sigue agachado si tiene techo encima aunque suelte la C
+		if "agachado" in jugador:
+			return bool(jugador.get("agachado"))
 		return Input.is_action_pressed("crouch")
 	return false
 
@@ -667,6 +670,12 @@ func _pista_inicio() -> void:
 	var sop := get_tree().get_first_node_in_group("soplete")
 	var jugador := _jugador()
 	if sop == null or jugador == null or jugador.get("held_object") == sop:
+		return
+	# Con el inventario nuevo el soplete se guarda en la barra en lugar de cargarse
+	if jugador.get("herramienta_activa") == sop or jugador.get("nodo_en_mano") == sop:
+		return
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("tiene_objeto") and hud.tiene_objeto("pistola"):
 		return
 	_hud("Toma el soplete con E (frente a ti)", COLOR_AVISO, 5.0)
 
