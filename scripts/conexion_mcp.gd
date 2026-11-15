@@ -2,14 +2,22 @@ extends Node
 ## Conecta el juego con el servidor MCP (mcp/servidor_mcp.py) por WebSocket.
 ## Está registrado como Autoload con el nombre "ConexionMCP".
 ##
-## - En el editor o en la versión de escritorio se conecta siempre.
-## - En la versión web solo se conecta si la dirección termina en ?mcp=1,
-##   para que los jugadores normales no intenten conectarse a su propia PC.
+## - En el editor o en la versión de escritorio se conecta siempre a localhost.
+## - En la versión web:
+##     ?mcp=1          -> se conecta al servidor MCP de esta misma PC (localhost).
+##     ?sala=CODIGO    -> se conecta por internet al relay, en esa sala. Así
+##                        funciona desde cualquier dispositivo (celular, otra PC);
+##                        en Claude se usa conectar_sala con el mismo código.
+##     (ninguno)       -> no se conecta, para que los jugadores normales no lo intenten.
+## - En escritorio también se puede pasar una sala:  -- --sala=CODIGO
 
-const URL := "ws://localhost:9080"
+const URL_LOCAL := "ws://localhost:9080"
+const URL_RELAY := "wss://mission-trainer-relay.onrender.com"   # relay/servidor_relay.py en Render
 const OXIGENO_MAX := 125.0        # mismo valor inicial que Global.oxigen
 const OXIGENO_BAJO_PCT := 25.0
 
+var URL := URL_LOCAL              # se decide en _ready()
+var _sala := ""
 var _socket := WebSocketPeer.new()
 var _conectado := false
 var _espera := 1.0                # segundos entre reintentos (crece hasta 10)
@@ -20,13 +28,38 @@ var _aviso_oxigeno_agotado := false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS   # responde aunque el juego esté en pausa
-	if OS.has_feature("web"):
+	_sala = _leer_sala()
+	if not _sala.is_empty():
+		URL = URL_RELAY + "/juego?sala=" + _sala
+	elif OS.has_feature("web"):
 		var query := str(JavaScriptBridge.eval("window.location.search", true))
 		if not query.contains("mcp=1"):
 			set_process(false)
 			return
 	get_tree().node_added.connect(_on_nodo_agregado)
 	_conectar()
+
+
+## Código de sala de la dirección (?sala=) o de la línea de comandos (--sala=).
+## Solo deja letras, números, - y _.
+func _leer_sala() -> String:
+	var sala := ""
+	if OS.has_feature("web"):
+		var valor = JavaScriptBridge.eval(
+			"(new URLSearchParams(window.location.search).get('sala') || '')", true)
+		if valor is String:
+			sala = valor
+	else:
+		for arg in OS.get_cmdline_user_args():
+			if arg.begins_with("--sala="):
+				sala = arg.trim_prefix("--sala=")
+	var limpia := ""
+	for c in sala:
+		if (c >= "a" and c <= "z") or (c >= "A" and c <= "Z") or (c >= "0" and c <= "9") or c == "-" or c == "_":
+			limpia += c
+	if limpia.length() < 3:
+		return ""
+	return limpia.left(40)
 
 
 func _conectar() -> void:
@@ -42,6 +75,10 @@ func _process(delta: float) -> void:
 				_conectado = true
 				_espera = 1.0
 				print("[MCP] Conectado a ", URL)
+				if not _sala.is_empty():
+					var hud := get_tree().get_first_node_in_group("hud")
+					if hud:
+						hud.mostrar_mensaje("Sala " + _sala + " conectada", Color("#66b3ff"), 3.0)
 			while _socket.get_available_packet_count() > 0:
 				_recibir(_socket.get_packet().get_string_from_utf8())
 		WebSocketPeer.STATE_CLOSED:
