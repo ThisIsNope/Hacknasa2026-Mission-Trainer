@@ -12,8 +12,8 @@ const MOUSE_SENS = 0.1
 const GRAVITY = 9.8
 const COYOTE_TIME = 0.20
 const JUMP_BUFFER_TIME = 0.20
-const OXYGEN_BASE = 0.005     # consumo al caminar o estar quieto (antes 0.05)
-const OXYGEN_SPRINT = 0.012   # consumo al correr (antes 0.1)
+const OXYGEN_BASE = 0.12
+const OXYGEN_SPRINT = 0.24
 
 const PULL_FORCE = 20.0
 const MAX_SPEED = 15.0
@@ -60,7 +60,9 @@ var nodo_en_mano: Node3D = null
 
 
 func _ready() -> void:
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if not OS.has_feature("web"):
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	ray_cast_3d.top_level = true
 
 	# Agacharse: cápsula propia para poder cambiar su altura sin tocar el recurso compartido
 	head_y_pie = head.position.y
@@ -300,9 +302,11 @@ func tirar_herramienta() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if Global.partida_terminada or not Global.en_curso or get_tree().paused:
+		return
 	# Tecla R: gira 90° la herramienta que llevas en la mano y muestra en la consola
 	# el valor final para ponerlo en "mano_rot" del CATALOGO del HUD.
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_R:
+	if OS.has_feature("editor") and event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_R:
 		if modelo_mano and is_instance_valid(modelo_mano) and id_en_mano != "":
 			var base: Vector3 = hud.CATALOGO.get(id_en_mano, {}).get("mano_rot", Vector3.ZERO)
 			giro_mano_y = fposmod(giro_mano_y + 90.0, 360.0)
@@ -312,20 +316,33 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-			return
 
-	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+	if event is InputEventMouseMotion and (Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)):
 		rotate_y(deg_to_rad(-event.relative.x * MOUSE_SENS))
 		head.rotate_x(deg_to_rad(-event.relative.y * MOUSE_SENS))
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-79), deg_to_rad(79))
 
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		var herramienta = held_object if held_object else herramienta_activa
-		if herramienta and herramienta.has_method("usar") and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		if herramienta and herramienta.has_method("usar"):
 			herramienta.usar(event.pressed, self)
 
 
 func _physics_process(delta: float) -> void:
+	if Global.partida_terminada or not Global.en_curso:
+		velocity = Vector3.ZERO
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam:
+		ray_cast_3d.global_transform = Transform3D(cam.global_basis.orthonormalized(), cam.global_position)
+		ray_cast_3d.target_position = Vector3(0, 0, -3.0 * global_basis.get_scale().x)
+		ray_cast_3d.force_raycast_update()
+	_actualizar_contexto()
+	# Alternativa para navegadores integrados que no permiten capturar el ratón.
+	var giro_x := float(Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_LEFT))
+	var giro_y := float(Input.is_physical_key_pressed(KEY_DOWN)) - float(Input.is_physical_key_pressed(KEY_UP))
+	rotate_y(-giro_x * delta * 1.5)
+	head.rotation.x = clampf(head.rotation.x - giro_y * delta * 1.5, deg_to_rad(-79), deg_to_rad(79))
 	oxigen_cons = OXYGEN_BASE
 	speed = WALK_SPEED
 
@@ -390,8 +407,40 @@ func _physics_process(delta: float) -> void:
 
 		if held_object and Input.is_action_just_pressed("use") and held_object.has_method("use"):
 			held_object.use(self)
+	elif id_en_mano in ["llave", "rachet"] and Input.is_action_pressed("use"):
+		var objetivo := objetivo_interaccion()
+		if objetivo and objetivo.has_method("recibir_herramienta"):
+			objetivo.recibir_herramienta(id_en_mano, 35.0 * delta)
 
 	move_and_slide()
+
+
+func objetivo_interaccion() -> Node:
+	if not ray_cast_3d.is_colliding():
+		return null
+	var objetivo: Node = ray_cast_3d.get_collider()
+	while objetivo:
+		if objetivo is Grabbable or objetivo.has_method("interact") or objetivo.has_method("recibir_herramienta"):
+			return objetivo
+		objetivo = objetivo.get_parent()
+	return null
+
+
+func _actualizar_contexto() -> void:
+	if hud == null or not hud.has_method("mostrar_contexto"):
+		return
+	var objetivo := objetivo_interaccion()
+	var texto := ""
+	if objetivo:
+		if objetivo.has_method("texto_interaccion"):
+			texto = objetivo.texto_interaccion()
+		elif objetivo is Grabbable:
+			texto = "E · Recoger soplete" if objetivo.is_in_group("soplete") else "E · Recoger objeto"
+		elif "id" in objetivo:
+			texto = "E · Recoger " + str(hud.CATALOGO.get(objetivo.id, {}).get("nombre", objetivo.id))
+		else:
+			texto = "E · Interactuar"
+	hud.mostrar_contexto(texto)
 
 
 func pick_object(obj: Grabbable) -> void:

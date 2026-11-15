@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://dejjwv5ub4q1p" path="res://models/salas/salaprincipal.GLB.blend" id="14_ttvjw"]
 [ext_resource type="PackedScene" uid="uid://2jqrif8kd4mn" path="res://scenes/hud.tscn" id="15_ac7c3"]
 [ext_resource type="Texture2D" uid="uid://ojig6kqcvkrt" path="res://assets/panorama_image.png" id="16_panorama"]
+[ext_resource type="Script" path="res://scripts/mision_local.gd" id="17_mision"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wfyh"]
 albedo_color = Color(0.22769701, 0.21775874, 0.22423172, 1)
@@ -477,7 +478,7 @@ transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545
 shadow_enabled = true
 
 [node name="player" type="CharacterBody3D" parent="." unique_id=758165338]
-transform = Transform3D(-2.61, 0, -2.2817343e-07, 0, 2.61, 0, 2.2817343e-07, 0, -2.61, -1.2488605, 6.9879394, 2.0281374)
+transform = Transform3D(-2.61, 0, -2.2817343e-07, 0, 2.61, 0, 2.2817343e-07, 0, -2.61, -1.2488605, 5.85, 2.0281374)
 script = ExtResource("13_cgqhq")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="player" unique_id=824152487]
@@ -513,6 +514,11 @@ use_collision = true
 size = Vector3(5.865, 5.445, 4.57)
 
 [node name="HUD" parent="." unique_id=916865239 instance=ExtResource("15_ac7c3")]
+cargar_demo = false
+herramientas_en_suelo = Array[String]([])
+
+[node name="MisionLocal" type="Node" parent="."]
+script = ExtResource("17_mision")
 
 [node name="Refugio" type="Area3D" parent="." unique_id=2006861945 groups=["refugio"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.5, 8, 11)

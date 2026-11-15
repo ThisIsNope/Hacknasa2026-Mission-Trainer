@@ -29,7 +29,7 @@ const COLOR_HECHO := Color(0.40, 1.0, 0.50)
 ## "mano_rot": giro extra en grados al tenerlo en la mano (el objeto ya se orienta
 ##   solo con su lado más largo hacia el frente; si queda al revés, pon Vector3(0, 180, 0))
 const CATALOGO := {
-	"pistola": {"nombre": "Pistola", "escena": "res://models/pistola.blend", "tamano": 0.25, "mano_rot": Vector3(0, 180, 0)},
+	"pistola": {"nombre": "Soplete", "escena": "res://models/pistola.blend", "tamano": 0.25, "mano_rot": Vector3(0, 180, 0)},
 	"rachet": {"nombre": "Rachet", "escena": "res://models/rachet1.blend", "tamano": 0.28, "mano_rot": Vector3(0, 0, 0)},
 	"llave": {"nombre": "Llave inglesa", "escena": "res://models/wrench.blend", "tamano": 0.35, "mano_rot": Vector3(0, 0, 0)},
 }
@@ -68,6 +68,7 @@ var slot_iconos: Array[TextureRect] = []
 var slot_iniciales: Array[Label] = []
 var slot_cantidades: Array[Label] = []
 var label_item: Label
+var label_contexto: Label
 var estilo_slot: StyleBoxFlat
 var estilo_slot_sel: StyleBoxFlat
 var iconos_cache: Dictionary = {}
@@ -156,6 +157,12 @@ func _ready() -> void:
 		objetos.append({})
 
 	_construir_ui()
+	mensaje.anchor_left = 0.03
+	mensaje.anchor_right = 0.65
+	mensaje.offset_top = 125
+	mensaje.offset_bottom = 195
+	mensaje.add_theme_font_size_override("font_size", 20)
+	mensaje.add_theme_constant_override("outline_size", 3)
 
 	if cargar_demo:
 		_cargar_demo()
@@ -206,6 +213,21 @@ func _construir_ui() -> void:
 	_crear_medidor_oxigeno(raiz)
 	_crear_hotbar(raiz)
 	_crear_panel_tareas(raiz)
+	label_contexto = _crear_label("", 18)
+	label_contexto.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label_contexto.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label_contexto.add_theme_color_override("font_outline_color", Color.BLACK)
+	label_contexto.add_theme_constant_override("outline_size", 4)
+	raiz.add_child(label_contexto)
+	label_contexto.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	label_contexto.offset_left = -240
+	label_contexto.offset_right = 240
+	label_contexto.offset_top = 90
+	label_contexto.offset_bottom = 150
+
+
+func mostrar_contexto(texto: String) -> void:
+	label_contexto.text = texto
 
 
 func _crear_medidor_oxigeno(raiz: Control) -> void:
@@ -243,8 +265,8 @@ func _crear_hotbar(raiz: Control) -> void:
 	for i in NUM_SLOTS:
 		var slot := PanelContainer.new()
 		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		slot.custom_minimum_size = Vector2(72, 72)
-		slot.pivot_offset = Vector2(36, 36)
+		slot.custom_minimum_size = Vector2(56, 56)
+		slot.pivot_offset = Vector2(28, 28)
 		slot.add_theme_stylebox_override("panel", estilo_slot)
 
 		var contenido := Control.new()
@@ -877,16 +899,24 @@ func _actualizar_progreso_tareas() -> void:
 
 func _conectar_senales() -> void:
 	for s in get_tree().get_nodes_in_group("soldable"):
-		s.soldado.connect(_on_soldado.bind(s))
-		s.progreso_cambiado.connect(_on_progreso)
+		conectar_reparable(s)
 	for sop in get_tree().get_nodes_in_group("soplete"):
 		sop.sin_combustible.connect(_on_sin_combustible)
 
 
+func conectar_reparable(objeto: Node) -> void:
+	var terminado := Callable(self, "_on_soldado").bind(objeto)
+	if not objeto.is_connected("soldado", terminado):
+		objeto.connect("soldado", terminado)
+	if not objeto.is_connected("progreso_cambiado", _on_progreso):
+		objeto.connect("progreso_cambiado", _on_progreso)
+
+
 func _on_progreso(valor: float) -> void:
-	var texto := "Soldando: %d%%" % int(valor)
+	var es_soplete := str(objeto_seleccionado().get("id", "")) == "pistola"
+	var texto := ("Soldando: %d%%" if es_soplete else "Reparando: %d%%") % int(valor)
 	var sop = get_tree().get_first_node_in_group("soplete")
-	if sop:
+	if sop and es_soplete:
 		texto += "   |   Combustible: %d%%" % int(sop.combustible / sop.combustible_max * 100.0)
 	info.text = texto
 	info.visible = true
@@ -896,9 +926,10 @@ func _on_progreso(valor: float) -> void:
 func _on_soldado(objeto: Node) -> void:
 	info.visible = false
 	tiempo_info = 0.0
-	mostrar_mensaje("¡%s soldado!" % objeto.nombre, Color(0.4, 1.0, 0.5))
+	mostrar_mensaje("¡%s reparado!" % objeto.nombre, Color(0.4, 1.0, 0.5))
 	# Si existe una tarea con el mismo id que el nombre del soldable, se completa sola
-	completar_tarea(str(objeto.nombre))
+	var id: String = str(objeto.get("tarea_id"))
+	completar_tarea(id if not id.is_empty() else str(objeto.nombre))
 
 
 func _on_sin_combustible() -> void:

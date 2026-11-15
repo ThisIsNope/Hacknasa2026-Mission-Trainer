@@ -7,6 +7,8 @@ signal soldado                         # se emite una vez al llegar al 100 %
 signal progreso_cambiado(valor: float) # se emite mientras lo sueldas (0 a 100)
 
 @export var nombre: String = "Panel"    # se usa en el mensaje del HUD: "¡Panel soldado!"
+@export var tarea_id: String = ""
+@export_enum("pistola", "llave", "rachet") var herramienta_requerida: String = "pistola"
 
 @export var color_roto: Color = Color(0.35, 0.1, 0.05)
 @export var color_soldado: Color = Color(0.75, 0.75, 0.8)
@@ -35,8 +37,12 @@ func _ready() -> void:
 
 
 func recibir_soldadura(cantidad: float) -> void:
-	if terminado:
-		return
+	recibir_herramienta("pistola", cantidad)
+
+
+func recibir_herramienta(id: String, cantidad: float) -> bool:
+	if terminado or id != herramienta_requerida or cantidad <= 0.0:
+		return false
 	calor = 1.0
 	progreso = minf(progreso + cantidad, 100.0)
 	material.albedo_color = color_roto.lerp(color_soldado, progreso / 100.0)
@@ -44,6 +50,14 @@ func recibir_soldadura(cantidad: float) -> void:
 	if progreso >= 100.0:
 		terminado = true
 		soldado.emit()
+	return true
+
+
+func texto_interaccion() -> String:
+	if terminado:
+		return nombre + " · Reparado"
+	var herramientas := {"pistola": "soplete", "llave": "llave inglesa", "rachet": "rachet"}
+	return "%s · Equipa %s y mantén clic" % [nombre, herramientas[herramienta_requerida]]
 
 
 func _process(delta: float) -> void:

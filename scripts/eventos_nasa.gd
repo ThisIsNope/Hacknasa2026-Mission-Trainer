@@ -348,6 +348,8 @@ func _crear_soldable(nombre: String, problema: Dictionary) -> Node3D:
 	caja.set_script(SOLDABLE)
 	caja.name = nombre.validate_node_name()
 	caja.set("nombre", nombre)
+	caja.set("tarea_id", "evento_%d" % caja.get_instance_id())
+	caja.set("herramienta_requerida", "llave" if problema["mecanica"] == "Llave inglesa" else "pistola")
 	caja.set_meta("dano_base", problema["dano_base"])
 	caja.set_meta("mecanica", problema["mecanica"])
 	var cuerpo := StaticBody3D.new()
@@ -361,10 +363,8 @@ func _crear_soldable(nombre: String, problema: Dictionary) -> Node3D:
 	# El HUD solo conecta los soldables que existían al empezar: conectamos los nuevos
 	var hud := get_tree().get_first_node_in_group("hud")
 	if hud:
-		if hud.has_method("_on_soldado"):
-			caja.connect("soldado", Callable(hud, "_on_soldado").bind(caja))
-		if hud.has_method("_on_progreso"):
-			caja.connect("progreso_cambiado", Callable(hud, "_on_progreso"))
+		hud.agregar_tarea(caja.tarea_id, nombre + " · " + str(problema["mecanica"]))
+		hud.conectar_reparable(caja)
 	return caja
 
 
@@ -670,6 +670,8 @@ func _ready() -> void:
 
 ## Si a los pocos segundos el jugador no trae el soplete, le dice qué hacer.
 func _pista_inicio() -> void:
+	if get_tree().get_first_node_in_group("mision_local") != null:
+		return
 	var sop := get_tree().get_first_node_in_group("soplete")
 	var jugador := _jugador()
 	if sop == null or jugador == null or jugador.get("held_object") == sop:

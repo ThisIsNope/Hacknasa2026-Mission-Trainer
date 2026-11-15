@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bwc67xqb786ld"]
 
 [ext_resource type="Script" path="res://scripts/Room/interactor.gd" id="1_kcyvy"]
-[ext_resource type="Script" path="res://scenes/interactor2.gd" id="2_m3mvl"]
-[ext_resource type="Script" path="res://scenes/interactor3.gd" id="3_64h2d"]
+[ext_resource type="Script" path="res://scripts/Room/interactor2.gd" id="2_m3mvl"]
+[ext_resource type="Script" path="res://scripts/Room/interactor3.gd" id="3_64h2d"]
 [ext_resource type="Script" uid="uid://c22ffv51ul0t" path="res://scripts/Room/interact.gd" id="4_1fjv3"]
 [ext_resource type="Script" uid="uid://c67iofn4tuy86" path="res://scripts/Room/interact2.gd" id="5_yrh5y"]
 [ext_resource type="Script" uid="uid://dws24o5aikadk" path="res://scripts/Room/interact3.gd" id="6_7374f"]

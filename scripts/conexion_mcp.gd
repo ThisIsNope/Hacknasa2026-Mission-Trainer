@@ -28,18 +28,20 @@ var _ranking_panel: CanvasLayer   # solo existe si el juego está en una sala
 var _jornada: Node                # jornada diaria (scripts/jornada.gd)
 var _dia_pedido := false          # ya se pidió la jornada de hoy al relay
 var _repetir_dia := false         # Claude pidió jugar la jornada aunque ya esté hecha
+var modo_remoto := false
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS   # responde aunque el juego esté en pausa
 	_sala = _leer_sala()
+	modo_remoto = not _sala.is_empty() or "--mcp" in OS.get_cmdline_user_args()
+	if OS.has_feature("web"):
+		modo_remoto = modo_remoto or bool(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('mcp') === '1'", true))
+	if not modo_remoto:
+		set_process(false)
+		return
 	if not _sala.is_empty():
 		URL = URL_RELAY + "/juego?sala=" + _sala
-	elif OS.has_feature("web"):
-		var query := str(JavaScriptBridge.eval("window.location.search", true))
-		if not query.contains("mcp=1"):
-			set_process(false)
-			return
 	get_tree().node_added.connect(_on_nodo_agregado)
 	_crear_jornada()
 	if not _sala.is_empty():

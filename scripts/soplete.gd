@@ -64,12 +64,14 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Rayo desde la vista del jugador: suelda lo que esté en la mira
-	var head: Node3D = usuario.get_node("head")
-	var desde := head.global_position
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var desde := cam.global_position
 	# normalized(): en escenas donde la cabeza está escalada, global_basis.z no mide 1.
 	# El alcance crece con el tamaño del jugador (en level.tscn el jugador está escalado).
 	var escala := clampf(usuario.global_basis.get_scale().y, 0.5, 5.0)
-	var hacia := desde - head.global_basis.z.normalized() * alcance * escala
+	var hacia := desde - cam.global_basis.z.normalized() * alcance * escala
 	var query := PhysicsRayQueryParameters3D.create(desde, hacia)
 	query.exclude = [usuario.get_rid(), get_rid()]
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
