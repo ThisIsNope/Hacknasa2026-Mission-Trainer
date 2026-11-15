@@ -45,20 +45,19 @@ layout_mode = 2
 texture = ExtResource("2_oo0fn")
 
 [node name="MensajeSoldado" type="Label" parent="." unique_id=1402957713]
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -400.0
-offset_top = 60.0
-offset_right = 400.0
-offset_bottom = 120.0
+anchors_preset = 10
+anchor_left = 0.05
+anchor_right = 0.95
+offset_top = 40.0
+offset_bottom = 100.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 38
 text = "¡Panel soldado!"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="InfoSoldadura" type="Label" parent="." unique_id=880164257]
 anchors_preset = 8
