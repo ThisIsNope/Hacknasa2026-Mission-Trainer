@@ -113,6 +113,9 @@ func _physics_process(delta: float) -> void:
 			held_object.use(self)
 
 	move_and_slide()
+	if is_on_ceiling() and velocity.y > 0.0:
+		velocity.y = 0.0
+		jump_buffer_timer = 0.0
 
 
 func pick_object(obj: Grabbable) -> void:
