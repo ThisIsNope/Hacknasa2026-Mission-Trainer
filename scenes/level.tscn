@@ -74,10 +74,10 @@ use_collision = true
 size = Vector3(2, 5.445, 2)
 
 [node name="StaticBody3D" type="StaticBody3D" parent="Stage/CSGCombiner3D/MultiROOM" unique_id=229429304]
-transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, -0.8208779, 3.7181025, 0)
+transform = Transform3D(0.07141477, 0, 0, 0, 11.106778, 0, 0, 0, 9.774841, -1.1641797, 9.625049, 0)
 
 [node name="Interact" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM/StaticBody3D" unique_id=1544905250]
-transform = Transform3D(-9.368724e-09, 0, 0.2143314, 0, 2.0488226, 0, -0.20971653, 0, -9.167001e-09, 0, 0, 0)
+transform = Transform3D(-9.368724e-09, 0, 0.21433142, 0, 2.0488226, 0, -0.20971651, 0, -9.1670005e-09, -1.4586792, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("1_ppgk2")
@@ -86,7 +86,7 @@ script = ExtResource("1_ppgk2")
 transform = Transform3D(1, 0, 0, 0, 1.0000005, 0, 0, 0, 1, 0, 3.7180014, -0.8388233)
 
 [node name="Interact" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM/StaticBody3D2" unique_id=1705505387]
-transform = Transform3D(-9.1670005e-09, 0, -0.21433139, 0, 2.0488224, 0, 0.20971653, 0, -9.368724e-09, 0, 0, 0)
+transform = Transform3D(-9.1670005e-09, 0, -2.2256467, 0, 47.881615, 0, 0.20971654, 0, -9.728616e-08, 0, 0, -0.5023689)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("2_8iemx")
@@ -95,7 +95,7 @@ script = ExtResource("2_8iemx")
 transform = Transform3D(1, 0, 0, 0, 1.0000004, 0, 0, 0, 1, 0.825329, 3.7181025, 0)
 
 [node name="Interact" type="CSGBox3D" parent="Stage/CSGCombiner3D/MultiROOM/StaticBody3D3" unique_id=1554735999]
-transform = Transform3D(0.20971653, 0, 0, 0, 2.048823, 0, 0, 0, 0.21433142, 0, 0, 0)
+transform = Transform3D(0.20971653, 0, 0, 0, 36.316395, 0, 0, 0, 2.3497672, 0.53308994, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("3_64w2a")
@@ -164,7 +164,7 @@ use_collision = true
 size = Vector3(2, 5.445, 2)
 
 [node name="StaticBody3D" type="StaticBody3D" parent="Stage/Hallway1/GEN2" unique_id=1698237257]
-transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, -0.8208779, 3.7181025, 0)
+transform = Transform3D(1.0000004, 0, 1.7053026e-13, 0, 16.171349, 0, 1.4210855e-14, 0, 8.974995, -1.4049397, 18.671684, 1.1920929e-07)
 
 [node name="Interact" type="CSGBox3D" parent="Stage/Hallway1/GEN2/StaticBody3D" unique_id=2089675799]
 transform = Transform3D(-9.368724e-09, 0, 0.2143314, 0, 2.0488226, 0, -0.20971653, 0, -9.167001e-09, 0, 0, 0)
@@ -173,19 +173,19 @@ material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("1_mx8sn")
 
 [node name="StaticBody3D2" type="StaticBody3D" parent="Stage/Hallway1/GEN2" unique_id=648383047]
-transform = Transform3D(1, 0, 0, 0, 1.0000005, 0, 0, 0, 1, 0, 3.7180014, -0.8388233)
+transform = Transform3D(1, 0, 7.1054274e-15, 0, 1.0000005, 0, 0, 0, 1.0000001, 0, 20.801914, -0.8388233)
 
 [node name="Interact" type="CSGBox3D" parent="Stage/Hallway1/GEN2/StaticBody3D2" unique_id=822000020]
-transform = Transform3D(-9.1670005e-09, 0, -0.21433139, 0, 2.0488224, 0, 0.20971653, 0, -9.368724e-09, 0, 0, 0)
+transform = Transform3D(-9.167023e-09, 0, -2.632465, 0, 41.5351, 0, 0.20971735, 0, -1.1506879e-07, 0, 0, -0.53362805)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("2_ppgk2")
 
 [node name="StaticBody3D3" type="StaticBody3D" parent="Stage/Hallway1/GEN2" unique_id=1015708569]
-transform = Transform3D(1, 0, 0, 0, 1.0000004, 0, 0, 0, 1, 0.825329, 3.7181025, 0)
+transform = Transform3D(0.20292874, 0, -7.1054274e-15, 0, 1.0000004, 0, 1.7763568e-15, 0, 1.0000002, 1.0954857, 16.616825, 0)
 
 [node name="Interact" type="CSGBox3D" parent="Stage/Hallway1/GEN2/StaticBody3D3" unique_id=591131449]
-transform = Transform3D(0.20971653, 0, 0, 0, 2.048823, 0, 0, 0, 0.21433142, 0, 0, 0)
+transform = Transform3D(0.20971677, 0, -1.1368684e-13, 0, 33.82587, 0, -1.7763568e-15, 0, 2.4840355, 0.6086025, 0, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_0wfyh")
 script = ExtResource("3_2r41h")

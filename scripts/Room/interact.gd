@@ -34,6 +34,7 @@ func interact(_player: Node3D) -> void:
 
 	if is_instance_valid(nueva_caja):
 		check_copy(nueva_caja)
+	get_parent().queue_free()
 
 
 func check_copy(copia: Node) -> void:
