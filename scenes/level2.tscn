@@ -423,12 +423,6 @@ use_collision = true
 size = Vector3(6.3330345, 13.038853, 0.06976795)
 material = SubResource("StandardMaterial3D_jbj1t")
 
-[node name="CSGBox3D24" type="CSGBox3D" parent="Stage/COLLISION" unique_id=889406831]
-transform = Transform3D(-0.31421173, 0, -3.7055852e-06, 0, 0.99999994, 0, 2.7469266e-08, 0, -42.386955, -43.512493, 6.376931, 20.251732)
-use_collision = true
-size = Vector3(6.3330345, 13.038853, 0.06976795)
-material = SubResource("StandardMaterial3D_jbj1t")
-
 [node name="CSGBox3D21" type="CSGBox3D" parent="Stage/COLLISION" unique_id=241038656]
 transform = Transform3D(-0.31421173, 0, -3.7055852e-06, 0, 0.99999994, 0, 2.7469266e-08, 0, -42.386955, -65.38044, 6.410843, 13.156486)
 use_collision = true

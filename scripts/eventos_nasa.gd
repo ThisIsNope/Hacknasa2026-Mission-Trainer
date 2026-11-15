@@ -327,14 +327,26 @@ func _crear_soldable(nombre: String, problema: Dictionary) -> Node3D:
 	var escena := get_tree().current_scene
 	if escena == null:
 		return null
-	var caja := CSGBox3D.new()
+	# Malla + cuerpo estático (más ligero que un CSG: no recalcula su colisión al aparecer).
+	# soldable.gd va en la malla (le pone su material); el rayo del soplete pega en el
+	# StaticBody3D hijo y sube al padre para llamar recibir_soldadura().
+	var tamano := Vector3(0.6, 0.5, 0.08) * _escala_jugador()
+	var caja := MeshInstance3D.new()
+	var malla := BoxMesh.new()
+	malla.size = tamano
+	caja.mesh = malla
 	caja.set_script(SOLDABLE)
 	caja.name = nombre.validate_node_name()
-	caja.size = Vector3(0.6, 0.5, 0.08) * _escala_jugador()
-	caja.use_collision = true
 	caja.set("nombre", nombre)
 	caja.set_meta("dano_base", problema["dano_base"])
 	caja.set_meta("mecanica", problema["mecanica"])
+	var cuerpo := StaticBody3D.new()
+	var forma := CollisionShape3D.new()
+	var caja_col := BoxShape3D.new()
+	caja_col.size = tamano
+	forma.shape = caja_col
+	cuerpo.add_child(forma)
+	caja.add_child(cuerpo)
 	escena.add_child(caja)
 	# El HUD solo conecta los soldables que existían al empezar: conectamos los nuevos
 	var hud := get_tree().get_first_node_in_group("hud")
@@ -505,7 +517,7 @@ func _colocar_en_pared(rep: Node3D, i: int, total: int) -> void:
 
 	var pos := origen + dir * 1.6 * s       # sin pared cerca: flota frente al jugador
 	var normal := -dir
-	if not hit.is_empty() and hit.collider != rep and absf(hit.normal.y) < 0.7:
+	if not hit.is_empty() and hit.collider != rep and hit.collider.get_parent() != rep and absf(hit.normal.y) < 0.7:
 		normal = hit.normal
 		pos = hit.position + normal * 0.06 * s
 	var arriba := Vector3.UP if absf(normal.dot(Vector3.UP)) < 0.9 else Vector3.FORWARD
