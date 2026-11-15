@@ -56,11 +56,15 @@ const PROBLEMAS := {
 	1: {"nombre": "Ventila rota",           "mecanica": "Soplete",       "dano_base": 10.0},
 	2: {"nombre": "Panel solar suelto",     "mecanica": "Llave inglesa", "dano_base": 8.0},
 	3: {"nombre": "Radiación en la cabina", "mecanica": "Escudo",        "dano_base": 15.0},
+	# Solo en el juego (no está en la tabla de Supabase): para que el rachet también se use
+	4: {"nombre": "Antena de comunicaciones", "mecanica": "Rachet",     "dano_base": 8.0},
 }
+# Herramienta del juego para cada mecánica de reparación
+const HERRAMIENTA_POR_MECANICA := {"Soplete": "pistola", "Llave inglesa": "llave", "Rachet": "rachet"}
 const PROBLEMAS_POR_TIPO := {
 	"FLR": [3],
-	"CME": [1, 2],
-	"GST": [2, 1],
+	"CME": [1, 2, 4],   # el impacto rompe ventila, panel solar y antena
+	"GST": [4, 2, 1],   # la tormenta afecta primero a las comunicaciones
 	"SEP": [3],
 	"IPS": [],
 }
@@ -174,10 +178,21 @@ func terminar(resultado: String) -> void:
 	# Las reparaciones que quedaron se quitan después de unos segundos
 	var restos := _reparaciones.duplicate()
 	_reparaciones.clear()
+	# Sus tareas en el panel: las pendientes se marcan en rojo y luego se quitan todas
+	var hud := get_tree().get_first_node_in_group("hud")
+	var ids_tareas := []
+	for r in restos:
+		if is_instance_valid(r) and str(r.get("tarea_id")) != "":
+			ids_tareas.append(str(r.tarea_id))
+			if not r.terminado and hud and hud.has_method("fallar_tarea"):
+				hud.fallar_tarea(r.tarea_id)
 	get_tree().create_timer(4.0).timeout.connect(func():
 		for r in restos:
 			if is_instance_valid(r):
-				r.queue_free())
+				r.queue_free()
+		if is_instance_valid(hud) and hud.has_method("quitar_tarea"):
+			for id in ids_tareas:
+				hud.quitar_tarea(id))
 	match resultado:
 		"superado":
 			_hud("Evento superado: %s" % resumen["nombre"], COLOR_BIEN, 4.0)
@@ -311,8 +326,10 @@ func _crear_reparaciones(tipo: String, cantidad: int) -> void:
 	var marcadores := get_tree().get_nodes_in_group("punto_dano")
 	marcadores.shuffle()
 	var usados: Array[Vector3] = []
+	# Empieza en un problema al azar para que, a lo largo de la jornada, salgan las 3 herramientas
+	var inicio := randi() % ids.size()
 	for i in cantidad:
-		var problema: Dictionary = PROBLEMAS[ids[i % ids.size()]]
+		var problema: Dictionary = PROBLEMAS[ids[(inicio + i) % ids.size()]]
 		var nombre: String = problema["nombre"]
 		if cantidad > ids.size():
 			nombre += " %d" % (i + 1)
@@ -349,7 +366,7 @@ func _crear_soldable(nombre: String, problema: Dictionary) -> Node3D:
 	caja.name = nombre.validate_node_name()
 	caja.set("nombre", nombre)
 	caja.set("tarea_id", "evento_%d" % caja.get_instance_id())
-	caja.set("herramienta_requerida", "llave" if problema["mecanica"] == "Llave inglesa" else "pistola")
+	caja.set("herramienta_requerida", HERRAMIENTA_POR_MECANICA.get(problema["mecanica"], "pistola"))
 	caja.set_meta("dano_base", problema["dano_base"])
 	caja.set_meta("mecanica", problema["mecanica"])
 	var cuerpo := StaticBody3D.new()

@@ -1006,3 +1006,15 @@ func fallar_tarea(id: String) -> void:
 	var t: Dictionary = tareas[id]
 	t["caja"].add_theme_stylebox_override("panel", _estilo(COLOR_CRITICO, COLOR_CRITICO, 2, 4))
 	t["label"].add_theme_color_override("font_color", Color(0.75, 0.50, 0.48))
+
+
+## Quita una tarea del panel (las reparaciones de un evento al terminar).
+func quitar_tarea(id: String) -> void:
+	id = id.to_lower()
+	if not tareas.has(id):
+		return
+	var fila: Node = tareas[id]["caja"].get_parent()
+	if is_instance_valid(fila):
+		fila.queue_free()
+	tareas.erase(id)
+	_actualizar_progreso_tareas()

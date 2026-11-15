@@ -26,16 +26,26 @@ func _ready() -> void:
 		_preparar_remoto.call_deferred()
 		return
 	if OS.has_feature("web"):
-		Global.en_curso = bool(JavaScriptBridge.eval("window.nasaspStarted === true", true))
+		Global.en_curso = bool(JavaScriptBridge.eval("window.nasaspStarted !== false", true))
 	add_to_group("mision_local")
 	_iniciar.call_deferred()
 
 
+## Con sala (jornada diaria) no hay entrenamiento, pero sí la misma mesa con las
+## 3 herramientas (soplete, llave inglesa y rachet) y los letreros del refugio.
 func _preparar_remoto() -> void:
-	var interfaz := get_tree().get_first_node_in_group("hud")
-	if interfaz:
-		interfaz.herramientas_en_suelo.assign(["rachet", "llave"])
-		interfaz._colocar_herramientas()
+	hud = get_tree().get_first_node_in_group("hud")
+	var escena := get_tree().current_scene
+	if hud == null or escena == null:
+		return
+	decoracion = Node3D.new()
+	decoracion.name = "Equipo"
+	escena.add_child(decoracion)
+	_preparar_mesa()
+	var refugio := get_tree().get_first_node_in_group("refugio") as Node3D
+	if refugio:
+		_rotulo(refugio, "REFUGIO · SALA DE OXÍGENO", Vector3(0, 3, 0), Color(0.3, 1, 0.75))
+	_rotulo(decoracion, "← REFUGIO / SALA DE OXÍGENO", Vector3(-8, 9, -1), Color(0.3, 1, 0.75))
 
 
 func _iniciar() -> void:
@@ -68,7 +78,7 @@ func _process(delta: float) -> void:
 	if ui == null or finalizada:
 		return
 	if not Global.en_curso:
-		Global.en_curso = bool(JavaScriptBridge.eval("window.nasaspStarted === true", true))
+		Global.en_curso = bool(JavaScriptBridge.eval("window.nasaspStarted !== false", true))
 		return
 	tiempo = maxf(tiempo - delta, 0.0)
 	if Global.oxigen <= 0.0:
