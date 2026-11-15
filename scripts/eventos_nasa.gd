@@ -648,7 +648,7 @@ func _protegido() -> bool:
 
 func _como_protegerse() -> String:
 	if not _hay_refugio():
-		return "¡Agáchate para cubrirte!"
+		return "¡Agáchate (C) para cubrirte!"
 	return "¡Ve a la sala de oxígeno!"
 
 
