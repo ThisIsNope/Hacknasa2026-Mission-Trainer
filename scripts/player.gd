@@ -46,6 +46,10 @@ func _input(event: InputEvent) -> void:
 		head.rotate_x(deg_to_rad(-event.relative.y * MOUSE_SENS))
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-79), deg_to_rad(79))
 
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if held_object and held_object.has_method("usar") and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+			held_object.usar(event.pressed, self)
+
 
 func _physics_process(delta: float) -> void:
 	oxigen_cons = OXYGEN_BASE
@@ -94,15 +98,18 @@ func _physics_process(delta: float) -> void:
 			drop_object()
 		elif ray_cast_3d.is_colliding():
 			var obj = ray_cast_3d.get_collider()
-			if obj is Grabbable:
-				pick_object(obj)
-			elif obj.has_method("interact"):
-				obj.interact(self)
+			var target: Node = obj
+			while target and not (target is Grabbable) and not target.has_method("interact"):
+				target = target.get_parent()
+			if target is Grabbable:
+				pick_object(target)
+			elif target:
+				target.interact(self)
 
 	if held_object:
 		update_held_object(delta)
 
-		if Input.is_action_just_pressed("use") and held_object.has_method("use"):
+		if held_object and Input.is_action_just_pressed("use") and held_object.has_method("use"):
 			held_object.use(self)
 
 	move_and_slide()
@@ -128,6 +135,8 @@ func pick_object(obj: Grabbable) -> void:
 func drop_object() -> void:
 	if held_object == null:
 		return
+	if held_object.has_method("usar"):
+		held_object.usar(false, self)
 	if held_object.has_method("on_drop"):
 		held_object.on_drop(self)
 	held_object.freeze = false

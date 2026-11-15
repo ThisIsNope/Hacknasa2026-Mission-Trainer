@@ -1,10 +1,14 @@
 [gd_scene format=3 uid="uid://bkp2oax7uiakc"]
 
 [ext_resource type="Script" uid="uid://bgr7wvgcdq2ov" path="res://scripts/player.gd" id="1_2q6dc"]
-[ext_resource type="Script" uid="uid://de8cw72ckotkf" path="res://scenes/GenInteract.gd" id="1_w7c3h"]
+[ext_resource type="Script" uid="uid://c22ffv51ul0t" path="res://scripts/Room/interact.gd" id="1_mx8sn"]
+[ext_resource type="Script" uid="uid://c67iofn4tuy86" path="res://scripts/Room/interact2.gd" id="2_ppgk2"]
+[ext_resource type="Script" uid="uid://dws24o5aikadk" path="res://scripts/Room/interact3.gd" id="3_2r41h"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2q6dc"]
-albedo_color = Color(0.941824, 0.0003415358, 0.85748184, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wfyh"]
+albedo_color = Color(4.5242905e-06, 0.68602145, 0.36866468, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pv2mu"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_w7c3h"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -29,25 +33,58 @@ transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 0, 2.56,
 use_collision = true
 size = Vector3(4.5, 5.445, 4.5)
 
-[node name="CSGBox3D7" type="CSGBox3D" parent="Scene" unique_id=1410816190]
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="Scene" unique_id=897823455]
+use_collision = true
+
+[node name="MultiROOM" type="CSGBox3D" parent="Scene/CSGCombiner3D" unique_id=1410816190]
 transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 0, 2.56, -54)
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN1" type="CSGBox3D" parent="Scene" unique_id=1956967626]
-transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, -10, 2.56, -54)
+[node name="GEN1" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=1956967626]
+transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1, -1.2, 0, 0)
+visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN2" type="CSGBox3D" parent="Scene" unique_id=363530230]
-transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 10, 2.56, -54)
+[node name="GEN2" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=363530230]
+transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, 1.2, 0, 0)
+visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
 
-[node name="GEN3" type="CSGBox3D" parent="Scene" unique_id=1878119422]
-transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 0, 2.56, -64)
+[node name="GEN3" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=1878119422]
+transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, 0, 0, -1.2)
+visible = false
 use_collision = true
 size = Vector3(2, 5.445, 2)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=229429304]
+transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, -0.8208779, 3.7181025, 0)
+
+[node name="Interact" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM/StaticBody3D" unique_id=1544905250]
+transform = Transform3D(-9.368724e-09, 0, 0.2143314, 0, 2.0488226, 0, -0.20971653, 0, -9.167001e-09, 0, 0, 0)
+use_collision = true
+material = SubResource("StandardMaterial3D_0wfyh")
+script = ExtResource("1_mx8sn")
+
+[node name="StaticBody3D2" type="StaticBody3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=702642276]
+transform = Transform3D(1, 0, 0, 0, 1.0000005, 0, 0, 0, 1, 0, 3.7180014, -0.8388233)
+
+[node name="Interact" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM/StaticBody3D2" unique_id=1705505387]
+transform = Transform3D(-9.1670005e-09, 0, -0.21433139, 0, 2.0488224, 0, 0.20971653, 0, -9.368724e-09, 0, 0, 0)
+use_collision = true
+material = SubResource("StandardMaterial3D_0wfyh")
+script = ExtResource("2_ppgk2")
+
+[node name="StaticBody3D3" type="StaticBody3D" parent="Scene/CSGCombiner3D/MultiROOM" unique_id=422650631]
+transform = Transform3D(1, 0, 0, 0, 1.0000004, 0, 0, 0, 1, 0.825329, 3.7181025, 0)
+
+[node name="Interact" type="CSGBox3D" parent="Scene/CSGCombiner3D/MultiROOM/StaticBody3D3" unique_id=1554735999]
+transform = Transform3D(0.20971653, 0, 0, 0, 2.048823, 0, 0, 0, 0.21433142, 0, 0, 0)
+use_collision = true
+material = SubResource("StandardMaterial3D_0wfyh")
+script = ExtResource("3_2r41h")
 
 [node name="CSGBox3D6" type="CSGBox3D" parent="Scene" unique_id=2045893313]
 transform = Transform3D(4.665672, 0, 0, 0, 0.4880851, 0, 0, 0, 4.76834, 18, 2.56, 0)
@@ -74,16 +111,65 @@ transform = Transform3D(-2.0394299e-07, 0, 4.76834, 0, 0.4880851, 0, -4.665672, 
 use_collision = true
 size = Vector3(8, 5.445, 1)
 
-[node name="CSGBox3D8" type="CSGBox3D" parent="Scene" unique_id=800223875]
-transform = Transform3D(-2.0394299e-07, 0, 4.76834, 0, 0.4880851, 0, -4.665672, 0, -2.0843076e-07, 96.64465, 2.56, -30)
+[node name="Hallway1" type="CSGBox3D" parent="Scene" unique_id=1590194650]
+transform = Transform3D(-2.0394299e-07, 0, 4.76834, 0, 0.4880851, 0, -4.665672, 0, -2.0843076e-07, 118.06303, 2.56, -30)
 use_collision = true
 size = Vector3(8, 5.445, 1)
-material = SubResource("StandardMaterial3D_2q6dc")
 
-[node name="Interact" type="CSGBox3D" parent="Scene" unique_id=1544905250]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5439644, 4.4038663, -53.99407)
+[node name="GNS1" type="SoftBody3D" parent="Scene/Hallway1" unique_id=729720172]
+transform = Transform3D(0.44181523, 0, -3.5527137e-15, 0, 0.4418159, 0, 3.5527137e-15, 0, 0.44181523, 4.001461, 3.0440035, 0)
+visible = false
+mesh = SubResource("BoxMesh_pv2mu")
+
+[node name="GEN2" type="CSGBox3D" parent="Scene/Hallway1" unique_id=546760576]
+transform = Transform3D(1.2925182e-07, 0, 1.022005, 0, 1.0000006, 0, -0.97846866, 0, 1.330579e-07, -5.1302414, 0, 0.025295258)
 use_collision = true
-script = ExtResource("1_w7c3h")
+size = Vector3(2, 5.445, 2)
+
+[node name="GEN1" type="CSGBox3D" parent="Scene/Hallway1/GEN2" unique_id=1840695191]
+transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1, -1.2, 0, 0)
+visible = false
+use_collision = true
+size = Vector3(2, 5.445, 2)
+
+[node name="GEN2" type="CSGBox3D" parent="Scene/Hallway1/GEN2" unique_id=575475271]
+transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, 1.2, 0, 0)
+visible = false
+use_collision = true
+size = Vector3(2, 5.445, 2)
+
+[node name="GEN3" type="CSGBox3D" parent="Scene/Hallway1/GEN2" unique_id=1685641687]
+transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, 0, 0, -1.2)
+visible = false
+use_collision = true
+size = Vector3(2, 5.445, 2)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Scene/Hallway1/GEN2" unique_id=1698237257]
+transform = Transform3D(1, 0, 0, 0, 1.0000002, 0, 0, 0, 1, -0.8208779, 3.7181025, 0)
+
+[node name="Interact" type="CSGBox3D" parent="Scene/Hallway1/GEN2/StaticBody3D" unique_id=2089675799]
+transform = Transform3D(-9.368724e-09, 0, 0.2143314, 0, 2.0488226, 0, -0.20971653, 0, -9.167001e-09, 0, 0, 0)
+use_collision = true
+material = SubResource("StandardMaterial3D_0wfyh")
+script = ExtResource("1_mx8sn")
+
+[node name="StaticBody3D2" type="StaticBody3D" parent="Scene/Hallway1/GEN2" unique_id=648383047]
+transform = Transform3D(1, 0, 0, 0, 1.0000005, 0, 0, 0, 1, 0, 3.7180014, -0.8388233)
+
+[node name="Interact" type="CSGBox3D" parent="Scene/Hallway1/GEN2/StaticBody3D2" unique_id=822000020]
+transform = Transform3D(-9.1670005e-09, 0, -0.21433139, 0, 2.0488224, 0, 0.20971653, 0, -9.368724e-09, 0, 0, 0)
+use_collision = true
+material = SubResource("StandardMaterial3D_0wfyh")
+script = ExtResource("2_ppgk2")
+
+[node name="StaticBody3D3" type="StaticBody3D" parent="Scene/Hallway1/GEN2" unique_id=1015708569]
+transform = Transform3D(1, 0, 0, 0, 1.0000004, 0, 0, 0, 1, 0.825329, 3.7181025, 0)
+
+[node name="Interact" type="CSGBox3D" parent="Scene/Hallway1/GEN2/StaticBody3D3" unique_id=591131449]
+transform = Transform3D(0.20971653, 0, 0, 0, 2.048823, 0, 0, 0, 0.21433142, 0, 0, 0)
+use_collision = true
+material = SubResource("StandardMaterial3D_0wfyh")
+script = ExtResource("3_2r41h")
 
 [node name="Env" type="Node3D" parent="." unique_id=156471619]
 
@@ -95,7 +181,7 @@ transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545
 shadow_enabled = true
 
 [node name="player" type="CharacterBody3D" parent="." unique_id=758165338]
-transform = Transform3D(2.82, 0, 0, 0, 2.82, 0, 0, 0, 2.82, 16.921675, 5.1960673, 0)
+transform = Transform3D(2.82, 0, 0, 0, 2.82, 0, 0, 0, 2.82, 1.6366181, 5.1960673, -53.234238)
 script = ExtResource("1_2q6dc")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="player" unique_id=824152487]
