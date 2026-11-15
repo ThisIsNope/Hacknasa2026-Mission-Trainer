@@ -429,10 +429,31 @@ async def cancelar_evento_nasa() -> str:
 
 
 @mcp.tool()
+async def iniciar_dia(repetir: bool = False) -> str:
+    """Empieza la jornada diaria en el juego: misiones con los eventos reales de la NASA de
+    los últimos días (iguales para todas las salas) que se lanzan una tras otra. Al terminar
+    todas se guarda la jornada y se da un bono de puntos para el ranking (una vez por sala y día).
+    El juego ya la pide solo al entrar a una sala; úsalo si se canceló o para repetirla.
+    repetir: jugarla aunque la sala ya la haya completado hoy (no vuelve a sumar puntos).
+    Necesita una sala (conectar_sala). El estado del día sale en obtener_estado ("jornada")."""
+    datos = await pedir("iniciar_dia", repetir=repetir)
+    return ("Jornada pedida al relay: en unos segundos aparecen las misiones en el juego."
+            if isinstance(datos, dict) and datos.get("pedido") else json.dumps(datos, ensure_ascii=False, indent=2))
+
+
+@mcp.tool()
+async def cancelar_dia() -> str:
+    """Cancela la jornada diaria en curso (y su misión activa). No se guarda nada."""
+    await pedir("cancelar_dia")
+    return "Jornada cancelada."
+
+
+@mcp.tool()
 async def leer_eventos() -> str:
     """Devuelve lo que pasó en el juego desde la última lectura: paneles soldados,
     soplete sin combustible, oxígeno bajo u oxígeno agotado, y el inicio y fin de los
-    eventos de la NASA (evento_nasa_inicio / evento_nasa_fin, con su resultado)."""
+    eventos de la NASA (evento_nasa_inicio / evento_nasa_fin, con su resultado), la
+    jornada diaria (jornada, jornada_fin, jornada_guardada con el bono) y el ranking."""
     if not eventos:
         return "No hay eventos nuevos."
     texto = json.dumps(eventos, ensure_ascii=False, indent=2)

@@ -951,3 +951,27 @@ func _crear_label(texto: String, tamano: int = 16, color: Color = Color.WHITE) -
 	l.add_theme_constant_override("shadow_offset_x", 1)
 	l.add_theme_constant_override("shadow_offset_y", 1)
 	return l
+
+
+# =====================================================================
+#  JORNADA DIARIA (lo usa scripts/jornada.gd)
+# =====================================================================
+
+## Quita todas las tareas (las de ejemplo incluidas) para poner las de la jornada.
+func limpiar_tareas() -> void:
+	for t in tareas.values():
+		var fila: Node = t["caja"].get_parent()
+		if is_instance_valid(fila):
+			fila.queue_free()
+	tareas.clear()
+	_actualizar_progreso_tareas()
+
+
+## Marca una tarea como fallida (cuadro rojo y texto apagado). No cuenta como hecha.
+func fallar_tarea(id: String) -> void:
+	id = id.to_lower()
+	if not tareas.has(id) or tareas[id]["hecha"]:
+		return
+	var t: Dictionary = tareas[id]
+	t["caja"].add_theme_stylebox_override("panel", _estilo(COLOR_CRITICO, COLOR_CRITICO, 2, 4))
+	t["label"].add_theme_color_override("font_color", Color(0.75, 0.50, 0.48))

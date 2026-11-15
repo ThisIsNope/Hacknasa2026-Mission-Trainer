@@ -125,6 +125,9 @@ func lanzar(datos: Dictionary) -> Dictionary:
 	var evento_id = datos.get("evento_id")
 	if (evento_id is int or evento_id is float) and int(evento_id) > 0:
 		activo["evento_id"] = int(evento_id)
+	# Misión de la jornada diaria (scripts/jornada.gd), si el evento viene de ahí
+	if str(datos.get("mision_id", "")) != "":
+		activo["mision_id"] = str(datos["mision_id"])
 
 	match tipo:
 		"FLR":

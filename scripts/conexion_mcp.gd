@@ -25,6 +25,9 @@ var _reintento := 0.0
 var _aviso_oxigeno_bajo := false
 var _aviso_oxigeno_agotado := false
 var _ranking_panel: CanvasLayer   # solo existe si el juego está en una sala
+var _jornada: Node                # jornada diaria (scripts/jornada.gd)
+var _dia_pedido := false          # ya se pidió la jornada de hoy al relay
+var _repetir_dia := false         # Claude pidió jugar la jornada aunque ya esté hecha
 
 
 func _ready() -> void:
@@ -38,6 +41,7 @@ func _ready() -> void:
 			set_process(false)
 			return
 	get_tree().node_added.connect(_on_nodo_agregado)
+	_crear_jornada()
 	if not _sala.is_empty():
 		_crear_panel_ranking()
 	_conectar_eventos_nasa.call_deferred()   # EventosNasa se carga después de este autoload
@@ -83,6 +87,10 @@ func _process(delta: float) -> void:
 					var hud := get_tree().get_first_node_in_group("hud")
 					if hud:
 						hud.mostrar_mensaje("Sala " + _sala + " conectada", Color("#66b3ff"), 3.0)
+					# La primera vez que se conecta, pide la jornada de hoy
+					if not _dia_pedido:
+						_dia_pedido = true
+						get_tree().create_timer(4.0).timeout.connect(_pedir_dia)
 			while _socket.get_available_packet_count() > 0:
 				_recibir(_socket.get_packet().get_string_from_utf8())
 		WebSocketPeer.STATE_CLOSED:
@@ -104,7 +112,21 @@ func _recibir(texto: String) -> void:
 	# El relay manda el ranking (sin "id") al terminar cada evento de la NASA
 	if datos is Dictionary and datos.get("tipo") == "ranking":
 		if _ranking_panel:
-			_ranking_panel.actualizar(datos)
+			# Si está abierta la tarjeta de fin de jornada, el ranking sale al cerrarla
+			if _jornada and _jornada.pantalla.ocupada():
+				_jornada.pantalla.cerrada.connect(_ranking_panel.actualizar.bind(datos), CONNECT_ONE_SHOT)
+			else:
+				_ranking_panel.actualizar(datos)
+		return
+	if datos is Dictionary and datos.get("tipo") == "jornada":
+		if bool(datos.get("ya_completada", false)) and not _repetir_dia:
+			_jornada.avisar_completada(datos)
+		elif not _jornada.activa:
+			_jornada.iniciar(datos)
+		_repetir_dia = false
+		return
+	if datos is Dictionary and datos.get("tipo") == "jornada_guardada":
+		_jornada.poner_bono(datos)
 		return
 	if not (datos is Dictionary) or not datos.has("id"):
 		return
@@ -147,6 +169,27 @@ func _ejecutar(cmd: String, args: Dictionary) -> Array:
 				return [false, "No hay ningún evento en curso"]
 			eventos.terminar("cancelado")
 			return [true, {"cancelado": true}]
+
+		"iniciar_dia":
+			# Con "misiones" se usa esa lista; si no, se pide la de hoy al relay.
+			if args.get("misiones") is Array:
+				if not _jornada.iniciar({"fecha": str(args.get("fecha", Time.get_date_string_from_system(true))),
+						"misiones": args["misiones"]}):
+					return [false, "La lista de misiones está vacía o no es válida"]
+				return [true, _jornada.resumen()]
+			if _sala.is_empty():
+				return [false, "Sin sala no hay relay: pasa la lista de misiones en 'misiones'"]
+			if _jornada.activa:
+				return [false, "Ya hay una jornada en curso"]
+			_repetir_dia = bool(args.get("repetir", false))
+			_pedir_dia()
+			return [true, {"pedido": true, "repetir": _repetir_dia}]
+
+		"cancelar_dia":
+			if not _jornada.activa:
+				return [false, "No hay ninguna jornada en curso"]
+			_jornada.cancelar()
+			return [true, {"cancelada": true}]
 
 		"recargar_oxigeno":
 			var g := get_node_or_null("/root/Global")
@@ -206,6 +249,10 @@ func _estado() -> Dictionary:
 	var eventos := get_node_or_null("/root/EventosNasa")
 	if eventos and not eventos.activo.is_empty():
 		estado["evento_nasa"] = eventos.resumen_actual()
+	if _jornada:
+		var j: Dictionary = _jornada.resumen()
+		if not j.is_empty():
+			estado["jornada"] = j
 	return estado
 
 
@@ -216,6 +263,18 @@ func _crear_panel_ranking() -> void:
 	_ranking_panel.name = "RankingPanel"
 	add_child(_ranking_panel)
 	_ranking_panel.pedir_ranking.connect(func(): _enviar({"tipo": "pedir_ranking"}))
+
+
+func _crear_jornada() -> void:
+	_jornada = load("res://scripts/jornada.gd").new()
+	_jornada.name = "Jornada"
+	add_child(_jornada)
+	_jornada.terminada.connect(func(r: Dictionary): _evento("jornada_fin", {"datos": r}))
+
+
+func _pedir_dia() -> void:
+	if _jornada and not _jornada.activa:
+		_enviar({"tipo": "iniciar_dia"})
 
 
 # ---------------------------------------------------------------- eventos

@@ -3,7 +3,8 @@ extends CanvasLayer
 ## Lo crea ConexionMCP cuando el juego está en una sala (?sala=CODIGO). Los datos los
 ## manda el relay al terminar cada evento de la NASA ({"tipo": "ranking", ...}).
 ##  - Aparece solo unos segundos al llegar un ranking nuevo.
-##  - Tab lo abre o lo cierra cuando quieras (si aún no hay datos, los pide al relay).
+##  - Tab o el botón "RANKING" (arriba a la izquierda) lo abren o lo cierran cuando
+##    quieras; siempre piden el ranking actualizado al relay.
 ## Va en su propio CanvasLayer, así que no depende de hud.tscn / hud.gd.
 
 signal pedir_ranking
@@ -21,6 +22,7 @@ var _titulo: Label
 var _subtitulo: Label
 var _tabla: GridContainer
 var _pie: Label
+var _boton: Button
 var _datos: Dictionary = {}
 var _tween: Tween
 var _cerrar_en := 0.0
@@ -44,12 +46,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo \
 			and (event.physical_keycode == KEY_TAB or event.keycode == KEY_TAB):
 		get_viewport().set_input_as_handled()
-		if _panel.visible:
-			ocultar()
-		else:
-			if _datos.is_empty():
-				pedir_ranking.emit()
-			mostrar(0.0)
+		alternar()
+
+
+## Abre el panel pidiendo el ranking del momento, o lo cierra si ya está abierto.
+func alternar() -> void:
+	if _panel.visible:
+		ocultar()
+	else:
+		pedir_ranking.emit()   # el relay contesta con el ranking actual de todas las salas
+		mostrar(0.0)
 
 
 ## Llega un ranking del relay. Si trae puntos de un evento recién terminado, se muestra solo.
@@ -187,10 +193,38 @@ func _construir() -> void:
 	vb.add_child(_pie)
 
 	raiz.add_child(_panel)
+	_crear_boton(raiz)
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_panel.position.y -= 40   # un poco arriba para no tapar la barra de objetos
+
+
+## Botón fijo arriba a la izquierda. Con el ratón capturado (jugando) no se puede
+## hacer clic: se usa Tab, o Esc para soltar el ratón y luego clic en el botón.
+func _crear_boton(raiz: Control) -> void:
+	_boton = Button.new()
+	_boton.text = "RANKING  [Tab]"
+	_boton.focus_mode = Control.FOCUS_NONE   # que Espacio/Enter no lo activen al jugar
+	_boton.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_boton.add_theme_font_size_override("font_size", 16)
+	_boton.add_theme_color_override("font_color", COLOR_TEXTO)
+	_boton.add_theme_color_override("font_hover_color", COLOR_TU_SALA)
+	_boton.add_theme_color_override("font_pressed_color", COLOR_TU_SALA)
+	for estado in ["normal", "hover", "pressed"]:
+		var e := StyleBoxFlat.new()
+		e.bg_color = COLOR_FONDO if estado == "normal" else Color(0.10, 0.20, 0.32, 0.95)
+		e.border_color = COLOR_BORDE if estado == "normal" else COLOR_TU_SALA
+		e.set_border_width_all(2)
+		e.set_corner_radius_all(10)
+		e.content_margin_left = 14
+		e.content_margin_right = 14
+		e.content_margin_top = 8
+		e.content_margin_bottom = 8
+		_boton.add_theme_stylebox_override(estado, e)
+	_boton.pressed.connect(alternar)
+	raiz.add_child(_boton)
+	_boton.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT, Control.PRESET_MODE_MINSIZE, 20)
 
 
 func _celda(texto: String, color: Color, tamano: int = 20,
