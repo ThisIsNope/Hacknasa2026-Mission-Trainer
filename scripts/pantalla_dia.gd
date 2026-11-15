@@ -40,11 +40,15 @@ func ocupada() -> bool:
 	return _panel.visible
 
 
-func mostrar_inicio(fecha: String, misiones: Array, segundos_primera: float) -> void:
+func mostrar_inicio(fecha: String, misiones: Array, segundos_primera: float, repaso := false) -> void:
 	_limpiar()
 	_titulo.text = "JORNADA DEL %s" % _fecha_corta(fecha)
-	_subtitulo.text = "%d misiones · clima espacial real de la NASA" % misiones.size()
-	_subtitulo.add_theme_color_override("font_color", COLOR_SUAVE)
+	if repaso:
+		_subtitulo.text = "Repaso: ya completaste la de hoy, esta no suma bono"
+		_subtitulo.add_theme_color_override("font_color", COLOR_AMBAR)
+	else:
+		_subtitulo.text = "%d misiones · clima espacial real de la NASA" % misiones.size()
+		_subtitulo.add_theme_color_override("font_color", COLOR_SUAVE)
 	for i in misiones.size():
 		var m: Dictionary = misiones[i]
 		_lista.add_child(_label("%d.  %s" % [i + 1, m.get("titulo", "")], COLOR_TEXTO, 18))

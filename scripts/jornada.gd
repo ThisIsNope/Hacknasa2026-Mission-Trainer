@@ -70,7 +70,7 @@ func iniciar(paquete: Dictionary) -> bool:
 	_inicio_ms = Time.get_ticks_msec()
 	_hud_ref = null
 	_sincronizar_hud()
-	pantalla.mostrar_inicio(fecha, misiones, PAUSA_INICIAL)
+	pantalla.mostrar_inicio(fecha, misiones, PAUSA_INICIAL, bool(paquete.get("ya_completada", false)))
 	return true
 
 

@@ -121,9 +121,8 @@ func _recibir(texto: String) -> void:
 				_ranking_panel.actualizar(datos)
 		return
 	if datos is Dictionary and datos.get("tipo") == "jornada":
-		if bool(datos.get("ya_completada", false)) and not _repetir_dia:
-			_jornada.avisar_completada(datos)
-		elif not _jornada.activa:
+		# Si la sala ya la completó hoy se juega igual como repaso (el relay no vuelve a dar bono)
+		if not _jornada.activa:
 			_jornada.iniciar(datos)
 		_repetir_dia = false
 		return
